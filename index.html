@@ -1,1 +1,37 @@
-Test
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Uppercase Converter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+        }
+
+        #output {
+            margin-top: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+    </style>
+</head>
+
+<body>
+    <h2>Enter Text to Convert to Uppercase</h2>
+    <input type="text" id="userInput" placeholder="Type something...">
+    <button onclick="convertToUppercase()">Convert</button>
+
+    <div id="output"></div>
+
+    <script>
+        function convertToUppercase() {
+            const input = document.getElementById('userInput').value;
+            const uppercased = input.toUpperCase();
+            document.getElementById('output').textContent = `Uppercase: ${uppercased}`;
+        }
+    </script>
+</body>
+
+</html>
