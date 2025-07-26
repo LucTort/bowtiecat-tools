@@ -1,37 +1,421 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <title>Uppercase Converter</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 40px;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Update Formatter</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #3b3b3a;
+      color: #333;
+      margin: 0;
+      padding: 2rem;
+    }
 
-        #output {
-            margin-top: 20px;
-            font-weight: bold;
-            color: #333;
-        }
-    </style>
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      color:#141414;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: auto;
+    }
+
+    .input-group, .section {
+      background: white;
+      padding: 1rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      margin-bottom: 1rem;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+    }
+
+    #title {
+      font-size: 1.3rem;
+      font-weight: bold;
+    }
+
+    #description {
+      font-size: 1rem;
+    }
+
+    .section-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    .section-points {
+      font-size: 1rem;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 0.6rem;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 1rem;
+      box-sizing: border-box;
+    }
+
+    textarea {
+      resize: none;
+      overflow: hidden;
+      min-height: 4em;
+    }
+
+    button {
+      background-color: #4A90E2;
+      color: white;
+      border: none;
+      padding: 0.6rem 1rem;
+      border-radius: 5px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.2s;
+      position: relative;
+    }
+
+    button:hover {
+      background-color: #357ABD;
+    }
+
+    .section-controls {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      gap: 0.5rem;
+      margin-left: 1rem;
+      flex-shrink: 0;
+    }
+
+    .section-content-wrapper {
+      display: flex;
+      gap: 1rem;
+    }
+
+    .output-group {
+      background-color: #1e1e1e;
+      color: #ccc;
+      padding: 1rem;
+      border-radius: 8px;
+      font-family: monospace;
+      white-space: pre-wrap;
+      margin-top: 1rem;
+      position: relative;
+    }
+
+    .output-header {
+      font-size: 1.1rem;
+      font-weight: bold;
+      margin-top: 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .remove-button {
+      background-color: #D9534F;
+    }
+
+    .remove-progress, .clear-progress {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 0%;
+      background: rgba(0,0,0,0.2);
+      border-radius: 5px;
+      transition: none;
+      pointer-events: none;
+    }
+
+    .clear-button {
+      background-color: #C9302C;
+      margin-top: 1rem;
+    }
+
+    .copy-button {
+      background-color: #5cb85c;
+      font-size: 0.9rem;
+      padding: 0.4rem 0.6rem;
+      color: white;
+      z-index: 1;
+    }
+
+    .copy-button:hover {
+      background-color: #449d44;
+    }
+
+    .preview-box {
+      background: #f4f4f4;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-top: 2rem;
+    }
+
+    .preview-box h2 {
+      font-size: 1.4rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .preview-box ul {
+      padding-left: 1.5rem;
+    }
+
+    .preview-box li {
+      margin-bottom: 0.25rem;
+    }
+  </style>
 </head>
-
 <body>
-    <h2>Enter Text to Convert to Uppercase</h2>
-    <input type="text" id="userInput" placeholder="Type something...">
-    <button onclick="convertToUppercase()">Convert</button>
+  <div class="container">
+    <h1>Update Formatter</h1>
 
-    <div id="output"></div>
+    <div class="input-group">
+      <input type="text" id="title" placeholder="Update 1.2 — New Weapons"/>
+      <textarea id="description" rows="4" placeholder="This update focuses on adding new weapons..."></textarea>
+    </div>
 
-    <script>
-        function convertToUppercase() {
-            const input = document.getElementById('userInput').value;
-            const uppercased = input.toUpperCase();
-            document.getElementById('output').textContent = `Uppercase: ${uppercased}`;
-        }
-    </script>
+    <div id="sections"></div>
+    <button onclick="addSection()">+ Add Section</button>
+    <button onclick="generateOutput();" style="margin-top:1rem">Generate Output</button>
+    <button class="clear-button" onmousedown="startClear()" onmouseup="cancelClear()" onmouseleave="cancelClear()">
+      <div class="clear-progress" id="clearProgress"></div>
+      Clear All
+    </button>
+
+    <div class="preview-box" id="generalPreview"></div>
+
+    <div class="output-header">
+      <h1>Steam Output</h1>
+    </div>
+    <div id="steamOutput" class="output-group">
+        <div id="steamText"></div>
+        <button class="copy-button" onclick="copyToClipboard('steamOutput')">Copy</button>
+    </div>
+
+    <div class="output-header">
+      <h1>Discord Output</h1>
+    </div>
+    <div id="discordOutput" class="output-group">
+        <div id="discordText"></div>
+        <button class="copy-button" onclick="copyToClipboard('discordOutput')">Copy</button>
+    </div>
+  </div>
+
+  <script>
+    let sectionIdCounter = 0;
+    const sectionsEl = document.getElementById('sections');
+    let saveTimeout;
+    let clearTimer;
+
+    function autoResizeTextarea(textarea) {
+      textarea.style.height = 'auto';
+      textarea.style.height = (textarea.scrollHeight + 32) + 'px';
+    }
+
+    function bindSectionEvents(sectionDiv) {
+      const titleInput = sectionDiv.querySelector('.section-title');
+      const pointsTextarea = sectionDiv.querySelector('.section-points');
+      const handler = () => {
+        autoResizeTextarea(pointsTextarea);
+        saveToLocalStorage();
+        generateOutput();
+      };
+      titleInput.addEventListener('input', handler);
+      pointsTextarea.addEventListener('input', handler);
+      autoResizeTextarea(pointsTextarea);
+    }
+
+    function sectionTemplate(id) {
+      return `
+        <div class="section" data-id="${id}">
+          <div class="section-content-wrapper">
+            <div style="flex-grow: 1;">
+              <input type="text" class="section-title" placeholder="e.g. 🚀 Launch Content Highlights"/>
+              <textarea class="section-points" rows="4" placeholder="Bullet point 1\nBullet point 2"></textarea>
+            </div>
+            <div class="section-controls">
+              <button onclick="moveSection(${id}, -1)">↑</button>
+              <button onclick="moveSection(${id}, 1)">↓</button>
+              <button class="remove-button" onmousedown="startRemove(event, ${id})" onmouseup="cancelRemove(${id})" onmouseleave="cancelRemove(${id})">
+                <div class="remove-progress" id="progress-${id}"></div>
+                Remove
+              </button>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    function addSection(title = '', points = '') {
+      const id = sectionIdCounter++;
+      const wrapper = document.createElement('div');
+      wrapper.innerHTML = sectionTemplate(id);
+      const section = wrapper.firstElementChild;
+      sectionsEl.appendChild(section);
+      section.querySelector('.section-title').value = title;
+      section.querySelector('.section-points').value = points;
+      bindSectionEvents(section);
+      saveToLocalStorage();
+      generateOutput();
+    }
+
+    function loadFromLocalStorage() {
+      const raw = localStorage.getItem('releaseToolData');
+      if (!raw) return;
+      try {
+        const data = JSON.parse(raw);
+        document.getElementById('title').value = data.title || '';
+        document.getElementById('description').value = data.description || '';
+        (data.sections || []).forEach(sec => addSection(sec.title, sec.points));
+        generateOutput();
+      } catch (e) {
+        console.error('Failed to load saved data:', e);
+      }
+    }
+
+    function saveToLocalStorage() {
+      clearTimeout(saveTimeout);
+      saveTimeout = setTimeout(() => {
+        const data = {
+          title: document.getElementById('title').value,
+          description: document.getElementById('description').value,
+          sections: [...sectionsEl.querySelectorAll('.section')].map(section => ({
+            title: section.querySelector('.section-title').value,
+            points: section.querySelector('.section-points').value
+          }))
+        };
+        localStorage.setItem('releaseToolData', JSON.stringify(data));
+      }, 500);
+    }
+
+    function moveSection(id, direction) {
+      const section = [...sectionsEl.children].find(s => s.dataset.id == id);
+      if (!section) return;
+      const newIndex = [...sectionsEl.children].indexOf(section) + direction;
+      if (newIndex < 0 || newIndex >= sectionsEl.children.length) return;
+      sectionsEl.insertBefore(section, sectionsEl.children[newIndex + (direction > 0 ? 1 : 0)]);
+      saveToLocalStorage();
+      generateOutput();
+    }
+
+    const removeTimers = {};
+    function startRemove(event, id) {
+      const progressBar = document.getElementById(`progress-${id}`);
+      progressBar.style.transition = 'none';
+      progressBar.style.width = '20%';
+      requestAnimationFrame(() => {
+        progressBar.style.transition = 'width 0.8s cubic-bezier(0.5, 0, 0.3, 1)';
+        progressBar.style.width = '100%';
+      });
+      removeTimers[id] = setTimeout(() => {
+        removeSection(id);
+        saveToLocalStorage();
+        generateOutput();
+      }, 800);
+    }
+
+    function cancelRemove(id) {
+      const progressBar = document.getElementById(`progress-${id}`);
+      progressBar.style.transition = 'none';
+      progressBar.style.width = '0%';
+      clearTimeout(removeTimers[id]);
+    }
+
+    function removeSection(id) {
+      const section = [...sectionsEl.children].find(s => s.dataset.id == id);
+      if (section) section.remove();
+    }
+
+    function startClear() {
+      const bar = document.getElementById('clearProgress');
+      bar.style.transition = 'none';
+      bar.style.width = '20%';
+      requestAnimationFrame(() => {
+        bar.style.transition = 'width 1.5s ease-in-out';
+        bar.style.width = '100%';
+      });
+      clearTimer = setTimeout(() => {
+        document.getElementById('title').value = '';
+        document.getElementById('description').value = '';
+        sectionsEl.innerHTML = '';
+        localStorage.removeItem('releaseToolData');
+        document.getElementById('steamText').textContent = '';
+        document.getElementById('discordText').textContent = '';
+        document.getElementById('generalPreview').innerHTML = '';
+      }, 1500);
+    }
+
+    function cancelClear() {
+      const bar = document.getElementById('clearProgress');
+      bar.style.transition = 'none';
+      bar.style.width = '0%';
+      clearTimeout(clearTimer);
+    }
+
+    function generateOutput() {
+      const title = document.getElementById('title').value.trim();
+      const desc = document.getElementById('description').value.trim();
+      const sections = [...sectionsEl.querySelectorAll('.section')].map(section => ({
+        title: section.querySelector('.section-title').value.trim(),
+        points: section.querySelector('.section-points').value.trim().split('\n').map(p => p.trim()).filter(Boolean)
+      }));
+
+      const discordLines = [`**${title}**`, '', desc, '', '---'];
+      const steamLines = [desc, ''];
+      const previewHTML = [];
+
+      if (title) previewHTML.push(`<h2>${title}</h2>`);
+      if (desc) previewHTML.push(`<p>${desc}</p>`);
+
+      for (let section of sections) {
+        const emojiTitle = section.title;
+        const plainTitle = section.title.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '').trim();
+        steamLines.push(`[b]${plainTitle}[/b]`, '[list]');
+        section.points.forEach(p => steamLines.push(`[*] ${p}`));
+        steamLines.push('[/list]', '');
+
+        discordLines.push(`${emojiTitle}`);
+        section.points.forEach(p => discordLines.push(`- **${p}**`));
+        discordLines.push('', '---');
+
+        previewHTML.push(`<h3>${emojiTitle}</h3><ul>`);
+        section.points.forEach(p => previewHTML.push(`<li>${p}</li>`));
+        previewHTML.push(`</ul>`);
+      }
+
+      document.getElementById('steamText').textContent = steamLines.join('\n');
+      document.getElementById('discordText').textContent = discordLines.join('\n');
+      document.getElementById('generalPreview').innerHTML = previewHTML.join('\n');
+    }
+
+    function copyToClipboard(id) {
+      const el = document.getElementById(id).querySelector('div');
+      navigator.clipboard.writeText(el.textContent).then(() => {
+        alert(`${id} copied to clipboard.`);
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadFromLocalStorage();
+      document.getElementById('title').addEventListener('input', () => {
+        saveToLocalStorage();
+        generateOutput();
+      });
+      document.getElementById('description').addEventListener('input', () => {
+        saveToLocalStorage();
+        generateOutput();
+      });
+    });
+  </script>
 </body>
-
 </html>
