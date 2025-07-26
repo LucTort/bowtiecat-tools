@@ -6,6 +6,12 @@
   <title>Update Formatter</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <style>
+    /* =========================
+       GLOBAL / BASE STYLES
+       -------------------------
+       Keep the look & feel you had. We only add what's needed
+       for the floating Load button & the archive modal.
+       ========================= */
     body {
       font-family: 'Inter', sans-serif;
       background-color: #3b3b3a;
@@ -126,7 +132,7 @@
       background-color: #D9534F;
     }
 
-    .remove-progress, .clear-progress {
+    .remove-progress, .clear-progress, .delete-archive-progress {
       position: absolute;
       top: 0;
       left: 0;
@@ -136,11 +142,6 @@
       border-radius: 5px;
       transition: none;
       pointer-events: none;
-    }
-
-    .clear-button {
-      background-color: #C9302C;
-      margin-top: 1rem;
     }
 
     .copy-button {
@@ -174,23 +175,134 @@
     .preview-box li {
       margin-bottom: 0.25rem;
     }
+
+    /* =========================
+       NEW: Floating Load Button
+       -------------------------
+       WHY: quickly reachable regardless of scroll position.
+       ========================= */
+    #loadArchiveBtn {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 1000;
+      border-radius: 50%;
+      width: 56px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    /* =========================
+       NEW: Archive Modal
+       -------------------------
+       WHY: keep archive management decoupled from the main editor UX.
+       ========================= */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+    }
+
+    .modal {
+      background: #fff;
+      width: 95%;
+      max-width: 700px;
+      max-height: 80vh;
+      overflow-y: auto;
+      border-radius: 10px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+      padding: 1rem 1.25rem 1.5rem;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .modal-close {
+      background: #ccc;
+    }
+
+    .archive-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #f9f9f9;
+      border: 1px solid #eee;
+      border-radius: 6px;
+      padding: 0.75rem;
+      margin-bottom: 0.5rem;
+      gap: 0.5rem;
+    }
+
+    .archive-item-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .archive-item-title {
+      font-weight: 600;
+    }
+
+    .archive-item-date {
+      font-size: 0.85rem;
+      color: #666;
+    }
+
+    .archive-item-buttons {
+      display: flex;
+      gap: 0.5rem;
+      position: relative;
+    }
+
+    .delete-archive-button {
+      background-color: #C9302C;
+    }
+
+    .archive-button {
+      background-color: #6f42c1;
+      margin-top: 1rem;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>Update Formatter</h1>
 
+    <!-- =========================================================
+         INPUT: Title + Description
+         WHY: Title is used in archive naming & headings; description
+              often doubles as Steam body intro.
+         ========================================================= -->
     <div class="input-group">
       <input type="text" id="title" placeholder="Update 1.2 — New Weapons"/>
       <textarea id="description" rows="4" placeholder="This update focuses on adding new weapons..."></textarea>
     </div>
 
+    <!-- =========================================================
+         DYNAMIC SECTIONS
+         WHY: Game logs are typically grouped; this lets users add,
+              remove, and reorder them. We preserve your ↑/↓ + hold-to-delete.
+         ========================================================= -->
     <div id="sections"></div>
     <button onclick="addSection()">+ Add Section</button>
-    <button class="clear-button" onmousedown="startClear()" onmouseup="cancelClear()" onmouseleave="cancelClear()">
-      <div class="clear-progress" id="clearProgress"></div>
-      Clear All
-    </button>
+
+    <!-- =========================================================
+         REPLACED: 'Clear All' -> 'Archive'
+         WHY: Instead of discarding, we persist your work for later reuse.
+              After archiving, we clear the editor to start fresh.
+         ========================================================= -->
 
     <div class="preview-box" id="generalPreview"></div>
 
@@ -211,23 +323,235 @@
     </div>
   </div>
 
+  <!-- =========================
+       Floating Load button
+       ========================= -->
+<button id="loadArchiveBtn" title="Load or Create Logs" onclick="openArchiveModal()">Load/New</button>
+
+  <!-- =========================
+       Archive Modal
+       ========================= -->
+  <div class="modal-backdrop" id="archiveModalBackdrop">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="archiveModalTitle">
+    <div class="modal-header">
+      <h2 id="archiveModalTitle">Update Logs</h2>
+      <button class="modal-close" onclick="closeArchiveModal()">Close</button>
+    </div>
+    <div style="text-align: center; margin-bottom: 1rem;">
+      <button onclick="createNewLogFromModal()" style="padding: 1rem 2rem; font-size: 1.2rem;">+ New Log</button>
+    </div>
+    <div id="archiveList"></div>
+  </div>
+
+
   <script>
+    /* =========================================================
+       SECTION 0 — CONSTANTS & GLOBAL STATE
+       ---------------------------------------------------------
+       WHY: All keys & shared refs centralized for consistency and
+            to make future refactors safer.
+       ========================================================= */
+    const STORAGE_CURRENT_KEY = 'releaseToolData';
+    const STORAGE_ARCHIVE_KEY = 'releaseToolArchive';
+
     let sectionIdCounter = 0;
     const sectionsEl = document.getElementById('sections');
     let saveTimeout;
-    let clearTimer;
+
+    let currentArchiveId = null;
+
+    // Keep track of active press&hold timers for section deletes
+    const removeTimers = {};
+    // Keep track of press&hold timers for archive deletes
+    const archiveDeleteTimers = {};
+
+    /* =========================================================
+       SECTION 1 — UTILITIES
+       ---------------------------------------------------------
+       Small helpers to keep main logic readable.
+       ========================================================= */
+
+    function nowISODate() {
+      // WHY: ISO makes sorting & reading simple and is time zone explicit.
+      return new Date().toISOString();
+    }
 
     function autoResizeTextarea(textarea) {
+      // WHY: Allow natural growth → better UX for long bullets.
       textarea.style.height = 'auto';
       textarea.style.height = (textarea.scrollHeight + 32) + 'px';
     }
+
+    function debounceSave(fn, delay = 500) {
+      // WHY: Batching writes avoids localStorage thrash and improves perf.
+      clearTimeout(saveTimeout);
+      saveTimeout = setTimeout(fn, delay);
+    }
+
+    function hasContent(doc) {
+      // WHY: We don't want to archive empty shells accidentally.
+      if (!doc) return false;
+      if ((doc.title || '').trim()) return true;
+      if ((doc.description || '').trim()) return true;
+      if (Array.isArray(doc.sections)) {
+        return doc.sections.some(s => (s.title || '').trim() || (s.points || '').trim());
+      }
+      return false;
+    }
+
+    function deepClone(obj) {
+      // WHY: Avoid accidental mutation on archive objects.
+      return JSON.parse(JSON.stringify(obj));
+    }
+
+    /* =========================================================
+       SECTION 2 — ARCHIVE STORE LAYER (localStorage)
+       ---------------------------------------------------------
+       WHY: Data access is isolated. If you switch to IndexedDB later,
+            API consumers don't care.
+       ========================================================= */
+
+    function getArchive() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_ARCHIVE_KEY)) || [];
+      } catch {
+        return [];
+      }
+    }
+
+    function saveArchive(archiveArr) {
+      localStorage.setItem(STORAGE_ARCHIVE_KEY, JSON.stringify(archiveArr));
+    }
+
+function addToArchive(doc) {
+  const archive = getArchive();
+  const docContent = JSON.stringify({
+    title: doc.title?.trim(),
+    description: doc.description?.trim(),
+    sections: (doc.sections || []).map(s => ({
+      title: s.title?.trim(),
+      points: s.points?.trim()
+    }))
+  });
+
+  // 1. If editing an existing archive, update it in place
+  if (currentArchiveId) {
+    const existingIndex = archive.findIndex(entry => entry.id === currentArchiveId);
+    if (existingIndex !== -1) {
+      archive[existingIndex] = {
+        ...archive[existingIndex],
+        name: (doc.title && doc.title.trim()) || 'Unnamed',
+        date: nowISODate(),
+        data: deepClone(doc)
+      };
+      saveArchive(archive);
+      return;
+    }
+  }
+
+  // 2. Otherwise, check for identical content to avoid duplicates
+  const existing = archive.find(entry => {
+    const existingContent = JSON.stringify({
+      title: entry.data.title?.trim(),
+      description: entry.data.description?.trim(),
+      sections: (entry.data.sections || []).map(s => ({
+        title: s.title?.trim(),
+        points: s.points?.trim()
+      }))
+    });
+    return existingContent === docContent;
+  });
+
+  if (existing) {
+    existing.date = nowISODate();
+  } else {
+    archive.push({
+      id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()),
+      name: (doc.title && doc.title.trim()) || 'Unnamed',
+      date: nowISODate(),
+      data: deepClone(doc)
+    });
+  }
+
+  saveArchive(archive);
+}
+
+
+
+    function deleteFromArchiveById(id) {
+      const archive = getArchive().filter(item => item.id !== id);
+      saveArchive(archive);
+    }
+
+    function findArchiveById(id) {
+      return getArchive().find(item => item.id === id);
+    }
+
+    /* =========================================================
+       SECTION 3 — CURRENT DOC SERIALIZATION
+       ---------------------------------------------------------
+       WHY: Central place to read/write the current in-progress log.
+       ========================================================= */
+
+    function getCurrentDocFromUI() {
+      const title = document.getElementById('title').value;
+      const description = document.getElementById('description').value;
+      const sections = [...sectionsEl.querySelectorAll('.section')].map(section => ({
+        id: parseInt(section.dataset.id),
+        title: section.querySelector('.section-title').value,
+        points: section.querySelector('.section-points').value
+      }));
+      return { title, description, sections };
+    }
+
+
+    function saveCurrentDocToLocalStorage() {
+      debounceSave(() => {
+        const data = getCurrentDocFromUI();
+        localStorage.setItem(STORAGE_CURRENT_KEY, JSON.stringify({
+          ...data,
+          __archiveId: currentArchiveId || null
+        }));
+      });
+    }
+
+
+    function loadCurrentDocFromLocalStorage() {
+      const raw = localStorage.getItem(STORAGE_CURRENT_KEY);
+      if (!raw) return null;
+      try {
+        const parsed = JSON.parse(raw);
+        currentArchiveId = parsed.__archiveId || null;
+        return parsed;
+      } catch {
+        return null;
+      }
+    }
+
+
+    function clearCurrentDocUIAndStorage() {
+      document.getElementById('title').value = '';
+      document.getElementById('description').value = '';
+      sectionsEl.innerHTML = '';
+      localStorage.removeItem(STORAGE_CURRENT_KEY);
+      document.getElementById('steamText').textContent = '';
+      document.getElementById('discordText').textContent = '';
+      document.getElementById('generalPreview').innerHTML = '';
+      sectionIdCounter = 0;
+    }
+
+    /* =========================================================
+       SECTION 4 — UI: SECTIONS CRUD
+       ---------------------------------------------------------
+       WHY: Your original logic, slightly reorganized & commented.
+       ========================================================= */
 
     function bindSectionEvents(sectionDiv) {
       const titleInput = sectionDiv.querySelector('.section-title');
       const pointsTextarea = sectionDiv.querySelector('.section-points');
       const handler = () => {
         autoResizeTextarea(pointsTextarea);
-        saveToLocalStorage();
+        saveCurrentDocToLocalStorage();
         generateOutput();
       };
       titleInput.addEventListener('input', handler);
@@ -255,8 +579,9 @@
         </div>`;
     }
 
-    function addSection(title = '', points = '') {
-      const id = sectionIdCounter++;
+    function addSection(title = '', points = '', id = null) {
+      if (id === null) id = sectionIdCounter++;
+      else sectionIdCounter = Math.max(sectionIdCounter, id + 1);
       const wrapper = document.createElement('div');
       wrapper.innerHTML = sectionTemplate(id);
       const section = wrapper.firstElementChild;
@@ -264,38 +589,10 @@
       section.querySelector('.section-title').value = title;
       section.querySelector('.section-points').value = points;
       bindSectionEvents(section);
-      saveToLocalStorage();
+      saveCurrentDocToLocalStorage();
       generateOutput();
     }
 
-    function loadFromLocalStorage() {
-      const raw = localStorage.getItem('releaseToolData');
-      if (!raw) return;
-      try {
-        const data = JSON.parse(raw);
-        document.getElementById('title').value = data.title || '';
-        document.getElementById('description').value = data.description || '';
-        (data.sections || []).forEach(sec => addSection(sec.title, sec.points));
-        generateOutput();
-      } catch (e) {
-        console.error('Failed to load saved data:', e);
-      }
-    }
-
-    function saveToLocalStorage() {
-      clearTimeout(saveTimeout);
-      saveTimeout = setTimeout(() => {
-        const data = {
-          title: document.getElementById('title').value,
-          description: document.getElementById('description').value,
-          sections: [...sectionsEl.querySelectorAll('.section')].map(section => ({
-            title: section.querySelector('.section-title').value,
-            points: section.querySelector('.section-points').value
-          }))
-        };
-        localStorage.setItem('releaseToolData', JSON.stringify(data));
-      }, 500);
-    }
 
     function moveSection(id, direction) {
       const section = [...sectionsEl.children].find(s => s.dataset.id == id);
@@ -303,11 +600,10 @@
       const newIndex = [...sectionsEl.children].indexOf(section) + direction;
       if (newIndex < 0 || newIndex >= sectionsEl.children.length) return;
       sectionsEl.insertBefore(section, sectionsEl.children[newIndex + (direction > 0 ? 1 : 0)]);
-      saveToLocalStorage();
+      saveCurrentDocToLocalStorage();
       generateOutput();
     }
 
-    const removeTimers = {};
     function startRemove(event, id) {
       const progressBar = document.getElementById(`progress-${id}`);
       progressBar.style.transition = 'none';
@@ -318,7 +614,7 @@
       });
       removeTimers[id] = setTimeout(() => {
         removeSection(id);
-        saveToLocalStorage();
+        saveCurrentDocToLocalStorage();
         generateOutput();
       }, 800);
     }
@@ -335,31 +631,11 @@
       if (section) section.remove();
     }
 
-    function startClear() {
-      const bar = document.getElementById('clearProgress');
-      bar.style.transition = 'none';
-      bar.style.width = '20%';
-      requestAnimationFrame(() => {
-        bar.style.transition = 'width 1.5s ease-in-out';
-        bar.style.width = '100%';
-      });
-      clearTimer = setTimeout(() => {
-        document.getElementById('title').value = '';
-        document.getElementById('description').value = '';
-        sectionsEl.innerHTML = '';
-        localStorage.removeItem('releaseToolData');
-        document.getElementById('steamText').textContent = '';
-        document.getElementById('discordText').textContent = '';
-        document.getElementById('generalPreview').innerHTML = '';
-      }, 1500);
-    }
-
-    function cancelClear() {
-      const bar = document.getElementById('clearProgress');
-      bar.style.transition = 'none';
-      bar.style.width = '0%';
-      clearTimeout(clearTimer);
-    }
+    /* =========================================================
+       SECTION 5 — OUTPUT GENERATION
+       ---------------------------------------------------------
+       WHY: Left as-is but wrapped to re-use current UI doc state.
+       ========================================================= */
 
     function generateOutput() {
       const title = document.getElementById('title').value.trim();
@@ -404,16 +680,217 @@
       });
     }
 
+    /* =========================================================
+       SECTION 6 — ARCHIVE ACTIONS
+       ---------------------------------------------------------
+       WHY: Core of the new feature set.
+       ========================================================= */
+
+    function archiveCurrentAndClear() {
+      const current = getCurrentDocFromUI();
+      if (!hasContent(current)) {
+        alert('Nothing to archive.');
+        return;
+      }
+      addToArchive(current);
+      clearCurrentDocUIAndStorage();
+      alert('Archived and cleared.');
+    }
+
+    function openArchiveModal() {
+      if (!currentArchiveId) {
+        const raw = localStorage.getItem(STORAGE_CURRENT_KEY);
+        if (raw) {
+          try {
+            const parsed = JSON.parse(raw);
+            currentArchiveId = parsed.__archiveId || null;
+          } catch {
+            currentArchiveId = null;
+          }
+        }
+      }
+      renderArchiveList();
+      document.getElementById('archiveModalBackdrop').style.display = 'flex';
+    }
+
+
+    function closeArchiveModal() {
+      document.getElementById('archiveModalBackdrop').style.display = 'none';
+    }
+
+    function renderArchiveList() {
+      const listEl = document.getElementById('archiveList');
+      const archive = getArchive()
+        .filter(item => item.id !== currentArchiveId)
+        .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+      if (archive.length === 0) {
+        listEl.innerHTML = `<p>No archived logs yet.</p>`;
+        return;
+      }
+
+      listEl.innerHTML = '';
+      archive.forEach(item => {
+        const row = document.createElement('div');
+        row.className = 'archive-item';
+        row.innerHTML = `
+          <div class="archive-item-info">
+            <span class="archive-item-title">${escapeHtml(item.name)}</span>
+            <span class="archive-item-date">${new Date(item.date).toLocaleString()}</span>
+          </div>
+          <div class="archive-item-buttons">
+            <button onclick="loadArchive('${item.id}')">Load</button>
+            <button onclick="duplicateArchive('${item.id}')">Duplicate</button>
+            <button class="delete-archive-button" onmousedown="startDeleteArchive('${item.id}')" onmouseup="cancelDeleteArchive('${item.id}')" onmouseleave="cancelDeleteArchive('${item.id}')">
+              <div class="delete-archive-progress" id="archiveProgress-${item.id}"></div>
+              Delete
+            </button>
+          </div>
+
+        `;
+        listEl.appendChild(row);
+      });
+    }
+
+    function loadArchive(id) {
+      // 1) If current doc has content, auto-archive it (spec).
+      const current = getCurrentDocFromUI();
+      if (hasContent(current)) {
+        addToArchive(current);
+      }
+
+      // 2) Load selected archive doc into UI and keep it as the "current doc"
+      const item = findArchiveById(id);
+      if (!item) {
+        alert('Archive item not found.');
+        return;
+      }
+
+      currentArchiveId = id;
+
+      // Clear UI and set from archive
+      clearCurrentDocUIAndStorage();
+      const { title, description, sections } = item.data;
+
+      document.getElementById('title').value = title || '';
+      document.getElementById('description').value = description || '';
+
+      (sections || []).forEach(sec => addSection(sec.title || '', sec.points || '', sec.id ?? null));
+
+
+      // Save it as current
+      localStorage.setItem(STORAGE_CURRENT_KEY, JSON.stringify(getCurrentDocFromUI()));
+      generateOutput();
+
+      // Close modal
+      closeArchiveModal();
+    }
+
+      function duplicateArchive(id) {
+      const archive = getArchive();
+      const item = archive.find(a => a.id === id);
+      if (!item) return;
+
+      const copy = deepClone(item);
+      copy.id = crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random());
+      copy.name = `${item.name} (Copy)`;
+      copy.date = nowISODate();
+
+      // Ensure unique section IDs
+      if (Array.isArray(copy.data.sections)) {
+        copy.data.sections = copy.data.sections.map(s => ({
+          ...s,
+          id: sectionIdCounter++
+        }));
+      }
+
+      archive.push(copy);
+      saveArchive(archive);
+      renderArchiveList();
+    }
+
+
+    function startDeleteArchive(id) {
+      const bar = document.getElementById(`archiveProgress-${id}`);
+      if (!bar) return;
+      bar.style.transition = 'none';
+      bar.style.width = '20%';
+      requestAnimationFrame(() => {
+        bar.style.transition = 'width 1s ease-in-out';
+        bar.style.width = '100%';
+      });
+      archiveDeleteTimers[id] = setTimeout(() => {
+        deleteFromArchiveById(id);
+        renderArchiveList();
+      }, 1000);
+    }
+
+    function cancelDeleteArchive(id) {
+      const bar = document.getElementById(`archiveProgress-${id}`);
+      if (!bar) return;
+      bar.style.transition = 'none';
+      bar.style.width = '0%';
+      clearTimeout(archiveDeleteTimers[id]);
+    }
+
+    /* =========================================================
+       SECTION 7 — MISC HELPERS
+       ---------------------------------------------------------
+       ========================================================= */
+
+    function escapeHtml(str) {
+      // WHY: Defensive programming for titles from user input.
+      return (str || '').replace(/[&<>"']/g, s => ({
+        '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
+      }[s]));
+    }
+
+    function createNewLogFromModal() {
+      const current = getCurrentDocFromUI();
+      if (hasContent(current)) {
+        addToArchive(current);
+      }
+      clearCurrentDocUIAndStorage();
+      currentArchiveId = null;
+      closeArchiveModal();
+    }
+
+
+    /* =========================================================
+       SECTION 8 — BOOTSTRAP
+       ---------------------------------------------------------
+       WHY: On load, restore the last working draft, then keep
+            regenerating outputs as the user types.
+       ========================================================= */
+
     document.addEventListener('DOMContentLoaded', () => {
-      loadFromLocalStorage();
+      const data = loadCurrentDocFromLocalStorage();
+      if (data) {
+        document.getElementById('title').value = data.title || '';
+        document.getElementById('description').value = data.description || '';
+        (data.sections || []).forEach(sec => addSection(sec.title, sec.points));
+      }
+
+      // Bind change handlers for top-level inputs
       document.getElementById('title').addEventListener('input', () => {
-        saveToLocalStorage();
+        saveCurrentDocToLocalStorage();
         generateOutput();
       });
       document.getElementById('description').addEventListener('input', () => {
-        saveToLocalStorage();
+        saveCurrentDocToLocalStorage();
         generateOutput();
       });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          const modal = document.getElementById('archiveModalBackdrop');
+          if (modal && modal.style.display === 'flex') {
+            closeArchiveModal();
+          }
+        }
+      });
+
+
+      generateOutput();
     });
   </script>
 </body>
