@@ -1,0 +1,303 @@
+/* =========================
+       GLOBAL / BASE STYLES
+       -------------------------
+       Keep the look & feel you had. We only add what's needed
+       for the floating Load button & the archive modal.
+       ========================= */
+body {
+  font-family: "Inter", sans-serif;
+  background-color: #3b3b3a;
+  color: #333;
+  margin: 0;
+  padding: 2rem;
+}
+
+h1 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  color: #141414;
+}
+
+.container {
+  max-width: 900px;
+  margin: auto;
+}
+
+.input-group,
+.section {
+  background: white;
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  margin-bottom: 1rem;
+}
+
+label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+#title {
+  font-size: 1.3rem;
+  font-weight: bold;
+}
+
+#description {
+  font-size: 1rem;
+}
+
+.section-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.section-points {
+  font-size: 1rem;
+}
+
+input,
+textarea {
+  width: 100%;
+  padding: 0.6rem;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 1rem;
+  box-sizing: border-box;
+}
+
+textarea {
+  resize: none;
+  overflow: hidden;
+  min-height: 4em;
+}
+
+button {
+  background-color: #4a90e2;
+  color: white;
+  border: none;
+  padding: 0.6rem 1rem;
+  border-radius: 5px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  position: relative;
+}
+
+button:hover {
+  background-color: #357abd;
+}
+
+.section-controls {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 0.5rem;
+  margin-left: 1rem;
+  flex-shrink: 0;
+}
+
+.section-content-wrapper {
+  display: flex;
+  gap: 1rem;
+}
+
+.output-group {
+  background-color: #1e1e1e;
+  color: #ccc;
+  padding: 1rem;
+  border-radius: 8px;
+  font-family: monospace;
+  white-space: pre-wrap;
+  margin-top: 1rem;
+  position: relative;
+}
+
+.output-header {
+  font-size: 1.1rem;
+  font-weight: bold;
+  margin-top: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.remove-button {
+  background-color: #d9534f;
+}
+
+.remove-progress,
+.clear-progress,
+.delete-archive-progress {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 0%;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 5px;
+  transition: none;
+  pointer-events: none;
+}
+
+.copy-button {
+  background-color: #5cb85c;
+  font-size: 0.9rem;
+  padding: 0.4rem 0.6rem;
+  color: white;
+  z-index: 1;
+}
+
+.copy-button:hover {
+  background-color: #449d44;
+}
+
+.preview-box {
+  background: #f4f4f4;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-top: 2rem;
+}
+
+.preview-box h2 {
+  font-size: 1.4rem;
+  margin-bottom: 0.5rem;
+}
+
+.preview-box ul {
+  padding-left: 1.5rem;
+}
+
+.preview-box li {
+  margin-bottom: 0.25rem;
+}
+
+.current-label {
+  font-size: 0.85rem;
+  color: #888;
+  margin-left: 0.5rem;
+}
+
+.current-label {
+  font-size: 0.85rem;
+  color: #888;
+  margin-left: 0.5rem;
+}
+
+.archive-item[disabled] {
+  opacity: 0.6;
+}
+
+/* =========================
+       NEW: Floating Load Button
+       -------------------------
+       WHY: quickly reachable regardless of scroll position.
+       ========================= */
+#loadArchiveBtn {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 1000;
+  border-radius: 50%;
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+#dataManagementButton {
+  position: fixed;
+  bottom: 24px;
+  left: 24px;
+  z-index: 1000;
+  border-radius: 50%;
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* =========================
+       NEW: Archive Modal
+       -------------------------
+       WHY: keep archive management decoupled from the main editor UX.
+       ========================= */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.modal {
+  background: #fff;
+  width: 95%;
+  max-width: 700px;
+  max-height: 80vh;
+  overflow-y: auto;
+  border-radius: 10px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+  padding: 1rem 1.25rem 1.5rem;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.modal-close {
+  background: #ccc;
+}
+
+.archive-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f9f9f9;
+  border: 1px solid #eee;
+  border-radius: 6px;
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+  gap: 0.5rem;
+}
+
+.archive-item-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.archive-item-title {
+  font-weight: 600;
+}
+
+.archive-item-date {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.archive-item-buttons {
+  display: flex;
+  gap: 0.5rem;
+  position: relative;
+}
+
+.delete-archive-button {
+  background-color: #c9302c;
+}
+
+.archive-button {
+  background-color: #6f42c1;
+  margin-top: 1rem;
+}
