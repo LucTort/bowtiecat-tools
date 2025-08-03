@@ -203,29 +203,23 @@
       <div class="modal" role="dialog" aria-modal="true">
         <div class="modal-header">
           <h2>Confirm Cloud Sync</h2>
-          <button class="modal-close" onclick="cancelSyncConfirmation()">
-            Cancel
-          </button>
+          <button class="modal-close">Cancel</button>
         </div>
         <div style="padding: 1rem">
           <p>
             <strong>Warning:</strong> This sync key already exists in the cloud.
           </p>
           <p>
-            If you continue, your local data will be overwritten with the cloud
-            version.
+            If you continue, all your local data will be overwritten with the
+            cloud version, and lost forever.
           </p>
-          <p>A local backup will be saved before proceeding.</p>
-          <div style="margin-top: 2rem; position: relative; width: 100%">
+          <div style="margin-top: 2rem; text-align: center">
             <button
               id="confirmSyncButton"
               class="remove-button"
-              onmousedown="startSyncConfirm()"
-              onmouseup="cancelSyncConfirm()"
-              onmouseleave="cancelSyncConfirm()"
+              onclick="performConfirmedSync()"
             >
-              <div id="syncConfirmProgress"></div>
-              Hold to Confirm
+              Confirm
             </button>
           </div>
         </div>
@@ -287,6 +281,29 @@
       function deepClone(obj) {
         // WHY: Avoid accidental mutation on archive objects.
         return JSON.parse(JSON.stringify(obj));
+      }
+
+      function areArchivesIdentical(local, remote) {
+        const normalize = (arr) =>
+          [...arr]
+            .map((item) => ({
+              id: item.id,
+              name: item.name,
+              date: item.date,
+              data: {
+                title: item.data?.title?.trim() || "",
+                description: item.data?.description?.trim() || "",
+                sections: (item.data?.sections || []).map((s) => ({
+                  title: s.title?.trim() || "",
+                  points: s.points?.trim() || "",
+                })),
+              },
+            }))
+            .sort((a, b) => a.id.localeCompare(b.id)); // Ensure consistent ordering
+
+        return (
+          JSON.stringify(normalize(local)) === JSON.stringify(normalize(remote))
+        );
       }
 
       /* =========================================================
@@ -988,28 +1005,6 @@
 
       let syncConfirmTimer;
 
-      function startSyncConfirm() {
-        const progress = document.getElementById("syncConfirmProgress");
-        progress.style.transition = "none";
-        progress.style.width = "20%";
-        requestAnimationFrame(() => {
-          progress.style.transition = "width 1s ease-in-out";
-          progress.style.width = "100%";
-        });
-
-        syncConfirmTimer = setTimeout(() => {
-          performConfirmedSync();
-          closeSyncConfirmation();
-        }, 1000);
-      }
-
-      function cancelSyncConfirm() {
-        clearTimeout(syncConfirmTimer);
-        const progress = document.getElementById("syncConfirmProgress");
-        progress.style.transition = "none";
-        progress.style.width = "0%";
-      }
-
       function cancelSyncConfirmation() {
         clearTimeout(syncConfirmTimer);
         closeSyncConfirmation();
@@ -1031,38 +1026,8 @@
         hideSideButtons();
       }
 
-      function exportCloudBackup(syncId) {
-        const data = localStorage.getItem(STORAGE_CURRENT_KEY);
-        const archive = getArchive();
-        const exportData = {
-          current: data ? JSON.parse(data) : null,
-          archive: archive.map((item) => ({
-            id: item.id,
-            name: item.name,
-            date: item.date,
-            data: item.data,
-          })),
-        };
-
-        const blob = new Blob([JSON.stringify(exportData, null, 2)], {
-          type: "application/json",
-        });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-
-        const timestamp = new Date().toISOString().split("T")[0];
-        const cleanSyncId = syncId.replace(/[^a-zA-Z0-9_-]/g, "_");
-        a.download = `${timestamp} ${cleanSyncId} cloud-backup.json`;
-        a.click();
-        URL.revokeObjectURL(url);
-      }
-
       function performConfirmedSync() {
         const { key, cloudData } = window.pendingConfirmedSync;
-
-        // Download backup before overwrite
-        exportCloudBackup(key);
 
         // Overwrite local data
         localStorage.setItem(STORAGE_ARCHIVE_KEY, JSON.stringify(cloudData));
@@ -1082,9 +1047,6 @@
 
         localStorage.setItem("syncKey", key);
         loadSyncKey();
-        alert(
-          "Sync complete. A backup was saved before overwriting local data."
-        );
         location.reload();
       }
 
@@ -1134,7 +1096,17 @@
               return;
             }
 
-            openSyncConfirmationModal(key, remoteData);
+            const localData = getArchive();
+
+            if (areArchivesIdentical(localData, remoteData)) {
+              // Archives match — no confirmation needed
+              localStorage.setItem("syncKey", key);
+              loadSyncKey();
+              alert("Sync ID changed. Local and cloud data are identical.");
+            } else {
+              // Show warning — data mismatch
+              openSyncConfirmationModal(key, remoteData);
+            }
           }
         } catch (err) {
           alert("Unexpected error: " + err.message);
