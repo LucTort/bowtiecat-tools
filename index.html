@@ -1,1433 +1,929 @@
-<!-- 
-1st word (color)
-red
-blue
-green
-yellow
-purple
-orange
-pink
-black
-white
-gray
-brown
-cyan
-magenta
-turquoise
-teal
-lavender
-maroon
-gold
-silver
-navy
-lime
-indigo
-peach
-beige
-coral
-mint
-bronze
-plum
-rose
-ivory
--->
-
-<!-- 
-2nd word (adjective)
-simple
-effective
-complex
-efficient
-angry
-vibrant
-sad
-depressed
-happy
-excited
-hungry
-sleepy
-bored
-chaotic
-mellow
-dazzling
-radiant
-gloomy
-crusty
-spicy
-fluffy
-moody
-shimmering
-itchy
-bubbly
-electric
-pixelated
-grumpy
-fuzzy
-stormy
-glittery
-grimy
-sticky
-chunky
-crispy
-twinkly
-lazy
-noisy
-snappy
-zesty
-foggy
-dusty
-frosty
-juicy
--->
-
-<!-- 
-3rd word (verb, -ing form)
-dancing
-screaming
-floating
-slapping
-charging
-spinning
-howling
-stumbling
-laughing
-glitching
-melting
-raging
-zooming
-sniffing
-sleeping
-exploding
-fighting
-fleeing
-cackling
-lurking
-running
-falling
-jumping
-creeping
-sliding
-tumbling
-barking
-meowing
-hopping
-sneezing
-whistling
-dripping
-wobbling
-groaning
-chilling
-skipping
-bubbling
-yawning
-snoring
-scratching
-chewing
-shouting
--->
-
-<!-- 
-4th word (animal)
-cat
-dog
-frog
-fish
-mouse
-eagle
-bear
-squirrel
-turtle
-sloth
-lion
-monkey
-tiger
-chameleon
-penguin
-octopus
-llama
-narwhal
-kangaroo
-crab
-hedgehog
-raccoon
-platypus
-dodo
-giraffe
-panda
-fox
-moose
-koala
-wombat
-ferret
-badger
-otter
-peacock
-goose
-donkey
-buffalo
-shark
-lobster
-toucan
-mongoose
-antelope
-hyena
-beaver
-reindeer
-parrot
-seal
-walrus
--->
-
-<!-- TODO -->
-
-<!-- DISCLAIMER MESSAGE -->
-<!-- WARNING: -->
-<!-- Do not store private information with this sync system. Your data is not encrypted in any way.-->
-<!-- Your UUID is the key to your data. If you lose it, your data is gone. -->
-<!-- There may be bugs with the syncing system. Do not rely on it to be 100% functinal. -->
-
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
     <title>Update Formatter</title>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="index.css" />
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.1/dist/umd/supabase.min.js"></script>
-  </head>
-  <body>
-    <div class="container">
-      <h1>Update Formatter</h1>
+    <link rel="stylesheet" href="UpdateFormatter.css">
+</head>
+<body>
+    <!-- ============================================================
+         Page header
+         ============================================================ -->
+    <header class="page-hero">
+        <h1 class="page-hero-title">Update Formatter</h1>
+        <p class="page-hero-subtitle">Create formatted release notes for Steam, Itch.io, and Discord</p>
+    </header>
 
-      <!-- =========================================================
-         INPUT: Title + Description
-         WHY: Title is used in archive naming & headings; description
-              often doubles as Steam body intro.
-         ========================================================= -->
-      <div class="input-group">
-        <input type="text" id="title" placeholder="Update 1.2 — New Weapons" />
-        <textarea
-          id="description"
-          rows="4"
-          placeholder="This update focuses on adding new weapons..."
-        ></textarea>
-      </div>
+    <main class="content">
+        <!-- The tool itself: view switcher + panels share one surface
+             so it reads as a single section. -->
+        <section class="tool">
+            <!-- ============================================================
+                 View switcher — one view visible at a time; buttons map to
+                 panels via data-view-btn -> data-view
+                 ============================================================ -->
+            <nav class="view-switcher" id="view-switcher">
+                <button class="view-switcher-btn" data-view-btn="editor">Editor</button>
+                <button class="view-switcher-btn" data-view-btn="preview">Preview</button>
+                <button class="view-switcher-btn" data-view-btn="steam">Steam</button>
+                <button class="view-switcher-btn" data-view-btn="itch">Itch.io</button>
+                <button class="view-switcher-btn" data-view-btn="discord">Discord</button>
+            </nav>
 
-      <!-- =========================================================
-         DYNAMIC SECTIONS
-         WHY: Game logs are typically grouped; this lets users add,
-              remove, and reorder them. We preserve your ↑/↓ + hold-to-delete.
-         ========================================================= -->
-      <div id="sections"></div>
-      <button onclick="addSection()">+ Add Section</button>
+            <!-- ============================================================
+                 Editor
+                 ============================================================ -->
+            <div class="content-box" data-view="editor">
+                <input
+                    type="text"
+                    id="doc-title"
+                    placeholder="Update 1.2 — New Weapons"
+                    class="update-formatter-title-input"
+                >
+                <textarea
+                    id="doc-description"
+                    rows="1"
+                    placeholder="This update focuses on adding new weapons..."
+                    class="update-formatter-textarea"
+                    data-autoresize
+                ></textarea>
 
-      <!-- =========================================================
-         REPLACED: 'Clear All' -> 'Archive'
-         WHY: Instead of discarding, we persist your work for later reuse.
-              After archiving, we clear the editor to start fresh.
-         ========================================================= -->
+                <!-- Section rows are rendered here by renderSections() -->
+                <div id="sections"></div>
 
-      <div class="preview-box" id="generalPreview"></div>
+                <button id="add-section-btn" class="update-formatter-btn update-formatter-btn-primary">
+                    + Add Section
+                </button>
 
-      <div class="output-header">
-        <h1>Steam Output</h1>
-      </div>
-      <div id="steamOutput" class="output-group">
-        <div id="steamText"></div>
-        <button class="copy-button" onclick="copyToClipboard('steamOutput')">
-          Copy
-        </button>
-      </div>
+                <textarea
+                    id="doc-closer"
+                    rows="1"
+                    placeholder="Add closing remarks here (optional)..."
+                    class="update-formatter-textarea"
+                    data-autoresize
+                    style="margin-top: var(--spacing-xl);"
+                ></textarea>
+            </div>
 
-      <div class="output-header">
-        <h1>Discord Output</h1>
-      </div>
-      <div id="discordOutput" class="output-group">
-        <div id="discordText"></div>
-        <button class="copy-button" onclick="copyToClipboard('discordOutput')">
-          Copy
-        </button>
-      </div>
-    </div>
+            <!-- ============================================================
+                 Preview
+                 ============================================================ -->
+            <div class="content-box" data-view="preview" id="preview-box">
+                <h2 class="update-formatter-preview-title">Preview</h2>
+                <div id="preview"></div>
+            </div>
 
-    <!-- =========================
-       Floating Load button
-       ========================= -->
-    <button
-      id="loadArchiveBtn"
-      title="Load or Create Logs"
-      onclick="openArchiveModal()"
-    >
-      Load/New
-    </button>
+            <!-- ============================================================
+                 Outputs — one view per target site.
+                 To add a new site: add a formatter in FORMATTERS below, a
+                 matching panel here with data-format="<key>", and a switcher
+                 button above with data-view-btn="<key>".
+                 ============================================================ -->
+            <div data-view="steam">
+                <h2 class="section-heading">Steam Output</h2>
+                <div class="content-box">
+                    <div class="update-formatter-output-container">
+                        <pre class="update-formatter-output-text" data-format="steam"></pre>
+                        <button class="update-formatter-output-copy-btn" data-copy="steam">Copy</button>
+                    </div>
+                </div>
+            </div>
 
-    <button
-      id="dataManagementButton"
-      title="Load or Create Logs"
-      onclick="openDataManagementModal()"
-    >
-      Data Management
-    </button>
+            <div data-view="itch">
+                <h2 class="section-heading">Itch.io Output</h2>
+                <div class="content-box">
+                    <div class="update-formatter-output-container">
+                        <pre class="update-formatter-output-text" data-format="itch"></pre>
+                        <button class="update-formatter-output-copy-btn" data-copy="itch">Copy</button>
+                    </div>
+                </div>
+            </div>
 
-    <!-- =========================
-       Archive Modal
-       ========================= -->
-    <div class="modal-backdrop" id="archiveModalBackdrop">
-      <div
-        class="modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="archiveModalTitle"
-      >
-        <div class="modal-header">
-          <h2 id="archiveModalTitle">Update Logs</h2>
-          <button class="modal-close" onclick="closeArchiveModal()">
-            Close
-          </button>
+            <div data-view="discord">
+                <h2 class="section-heading">Discord Output</h2>
+                <div class="content-box">
+                    <div class="update-formatter-output-container">
+                        <pre class="update-formatter-output-text" data-format="discord"></pre>
+                        <button class="update-formatter-output-copy-btn" data-copy="discord">Copy</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Floating action buttons -->
+    <button id="fab-logs" class="update-formatter-fab update-formatter-fab-load" title="Switch, create, duplicate, or delete logs">Manage Logs</button>
+    <button id="fab-data" class="update-formatter-fab update-formatter-fab-data" title="Export or import your data">Manage Data</button>
+
+    <!-- ============================================================
+         Logs modal — switch between, duplicate, and delete documents
+         ============================================================ -->
+    <dialog id="logs-modal" class="update-formatter-modal">
+        <div class="update-formatter-modal-header">
+            <h2 class="update-formatter-modal-title">Update Logs</h2>
+            <button class="update-formatter-modal-close-btn" data-close>Close</button>
         </div>
-        <div style="text-align: center; margin-bottom: 1rem">
-          <button
-            onclick="createNewLogFromModal()"
-            style="padding: 1rem 2rem; font-size: 1.2rem"
-          >
-            + New Log
-          </button>
-        </div>
-        <div id="archiveList"></div>
-      </div>
-    </div>
-
-    <!-- =========================
-     Generic Confirmation Modal
-     ========================= -->
-    <div class="modal-backdrop" id="confirmActionModalBackdrop">
-      <div class="modal" role="dialog" aria-modal="true">
-        <div class="modal-header">
-          <h2 id="confirmActionTitle">Are you sure?</h2>
-          <button class="modal-close" onclick="cancelActionConfirmation()">
-            Cancel
-          </button>
-        </div>
-        <div style="padding: 1rem">
-          <p id="confirmActionMessage">This action cannot be undone.</p>
-          <div style="margin-top: 2rem; text-align: center">
-            <button id="confirmActionButton" class="remove-button">
-              Confirm
+        <div class="update-formatter-modal-centered">
+            <button id="new-log-btn" class="update-formatter-modal-action-btn update-formatter-modal-new-btn">
+                + New Log
             </button>
-          </div>
         </div>
-      </div>
-    </div>
+        <div id="logs-list" class="update-formatter-archive-list"></div>
+    </dialog>
 
-    <!-- =========================
-       Data Management Modal
-       ========================= -->
-
-    <div class="modal-backdrop" id="dataManagementModalBackdrop">
-      <div
-        class="modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="archiveModalTitle"
-      >
-        <div class="modal-header">
-          <h2 id="archiveModalTitle">Data Management</h2>
-          <button class="modal-close" onclick="closeDataManagementModal()">
-            Close
-          </button>
+    <!-- ============================================================
+         Data modal — export / import
+         ============================================================ -->
+    <dialog id="data-modal" class="update-formatter-modal update-formatter-modal-small">
+        <div class="update-formatter-modal-header">
+            <h2 class="update-formatter-modal-title">Data Management</h2>
+            <button class="update-formatter-modal-close-btn" data-close>Close</button>
         </div>
-        <div style="text-align: center; margin-bottom: 1rem">
-          <button
-            class="desktop-only"
-            onclick="exportData()"
-            style="padding: 1rem 2rem; font-size: 1.2rem"
-          >
-            Export Data
-          </button>
-          <button
-            class="desktop-only"
-            onclick="openImportDialog()"
-            style="padding: 1rem 2rem; font-size: 1.2rem"
-          >
-            Import Data
-          </button>
-          <h3>Cloud Sync Key</h3>
-          <p><strong>UUID:</strong> <span id="syncKey">Not set</span></p>
-          <!-- Provide a space for the user to enter a key -->
-          <p>
-            <input
-              type="text"
-              id="syncKeyInput"
-              placeholder="Enter your UUID here"
-            />
-          </p>
-          <button
-            onclick="saveSyncKey()"
-            style="padding: 1rem 2rem; font-size: 1.2rem"
-          >
-            Set Sync Key
-          </button>
-        </div>
-        <div id="archiveList"></div>
-      </div>
-    </div>
-
-    <!-- =========================
-   Sync Confirmation Modal
-   ========================= -->
-
-    <div class="modal-backdrop" id="syncConfirmModalBackdrop">
-      <div class="modal" role="dialog" aria-modal="true">
-        <div class="modal-header">
-          <h2>Confirm Cloud Sync</h2>
-          <button class="modal-close">Cancel</button>
-        </div>
-        <div style="padding: 1rem">
-          <p>
-            <strong>Warning:</strong> This sync key already exists in the cloud.
-          </p>
-          <p>
-            If you continue, all your local data will be overwritten with the
-            cloud version, and lost forever.
-          </p>
-          <div style="margin-top: 2rem; text-align: center">
-            <button
-              id="confirmSyncButton"
-              class="remove-button"
-              onclick="performConfirmedSync()"
-            >
-              Confirm
+        <div class="update-formatter-modal-centered">
+            <button id="export-btn" class="update-formatter-modal-action-btn update-formatter-modal-export-btn">
+                Export Data
             </button>
-          </div>
+            <button id="import-btn" class="update-formatter-modal-action-btn update-formatter-modal-import-btn">
+                Import Data
+            </button>
         </div>
-      </div>
-    </div>
+    </dialog>
 
     <script>
-      /* =========================================================
-       SECTION 0 — CONSTANTS & GLOBAL STATE
-       ---------------------------------------------------------
-       WHY: All keys & shared refs centralized for consistency and
-            to make future refactors safer.
-       ========================================================= */
-      const STORAGE_CURRENT_KEY = "releaseToolData";
-      const STORAGE_ARCHIVE_KEY = "releaseToolArchive";
+    'use strict';
 
-      let sectionIdCounter = 0;
-      const sectionsEl = document.getElementById("sections");
-      let saveTimeout;
+    /* ============================================================
+     * Data model
+     * ============================================================
+     *
+     * Everything lives under a single localStorage key as one state object:
+     *
+     *   {
+     *       version: 2,
+     *       currentId: "<uuid>",          // the document open in the editor
+     *       documents: [
+     *           {
+     *               id: "<uuid>",
+     *               createdAt: "<ISO date>",
+     *               updatedAt: "<ISO date>", // bumped on every edit
+     *               deletedAt: null,         // ISO date when soft-deleted
+     *               title: "",
+     *               description: "",
+     *               closer: "",
+     *               sections: [ { title: "", points: "" } ]
+     *           }
+     *       ]
+     *   }
+     *
+     * Simplifications vs the old (v1) format:
+     *   - No separate "current doc" blob vs "archive" array. The current
+     *     document is just a document; currentId points at it. This removes
+     *     the old save-before-load/new dance entirely — the current doc is
+     *     always already saved in place.
+     *   - Sections have no id counter. Array order IS the display order,
+     *     and rows are addressed by index.
+     *   - A single deletedAt timestamp replaces the old deleted/deletedAt
+     *     dual flags. Deleted docs are kept as tombstones (see CloudSync
+     *     notes at the bottom) but never shown.
+     *   - The list name is derived from the title instead of being stored
+     *     as a separate "name" field that could drift out of sync.
+     */
 
-      let currentArchiveId = null;
+    const STORAGE_KEY = 'updateFormatterData.v2';
 
-      /* =========================================================
-       SECTION 1 — UTILITIES
-       ---------------------------------------------------------
-       Small helpers to keep main logic readable.
-       ========================================================= */
+    // Old (v1) keys, read once for migration. They are left untouched
+    // afterwards so they act as a backup of the pre-rewrite data.
+    const V1_CURRENT_KEY = 'releaseToolData';
+    const V1_ARCHIVE_KEY = 'releaseToolArchive';
 
-      function nowISODate() {
-        // WHY: ISO makes sorting & reading simple and is time zone explicit.
-        return new Date().toISOString();
-      }
+    let state = null; // set by init()
 
-      function autoResizeTextarea(textarea) {
-        // WHY: Allow natural growth → better UX for long bullets.
-        textarea.style.height = "auto";
-        textarea.style.height = textarea.scrollHeight + 32 + "px";
-      }
+    /* ============================================================
+     * Small helpers
+     * ============================================================ */
 
-      function debounceSave(fn, delay = 500) {
-        // WHY: Batching writes avoids localStorage thrash and improves perf.
+    const $ = (selector) => document.querySelector(selector);
+
+    const newId = () =>
+        crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random());
+
+    const now = () => new Date().toISOString();
+
+    // Split a points textarea into clean, non-empty lines.
+    const splitPoints = (points) =>
+        (points || '').split('\n').map(p => p.trim()).filter(Boolean);
+
+    // Strip emoji from section titles (Steam BBCode doesn't render them well).
+    const stripEmoji = (text) =>
+        (text || '').replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '').trim();
+
+    const hasContent = (doc) =>
+        Boolean(
+            (doc.title || '').trim() ||
+            (doc.description || '').trim() ||
+            (doc.closer || '').trim() ||
+            (doc.sections || []).some(s => (s.title || '').trim() || (s.points || '').trim())
+        );
+
+    const makeDoc = () => ({
+        id: newId(),
+        createdAt: now(),
+        updatedAt: now(),
+        deletedAt: null,
+        title: '',
+        description: '',
+        closer: '',
+        sections: []
+    });
+
+    // The document currently open in the editor. init() guarantees this
+    // always resolves to a live document.
+    const currentDoc = () => state.documents.find(d => d.id === state.currentId);
+
+    // Non-deleted documents, newest first — what the Logs modal shows.
+    const visibleDocs = () =>
+        state.documents
+            .filter(d => !d.deletedAt)
+            .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+
+    /* ============================================================
+     * Storage layer
+     * ============================================================
+     * All localStorage access goes through these two functions plus
+     * migrateV1(). Cloud sync, when added, should hook in here — see the
+     * CloudSync notes at the bottom of this file.
+     */
+
+    let saveTimeout = null;
+
+    // Debounced write of the whole state object.
+    function persist() {
         clearTimeout(saveTimeout);
-        saveTimeout = setTimeout(fn, delay);
-      }
+        saveTimeout = setTimeout(() => {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        }, 300);
+    }
 
-      function hasContent(doc) {
-        // WHY: We don't want to archive empty shells accidentally.
-        if (!doc) return false;
-        if ((doc.title || "").trim()) return true;
-        if ((doc.description || "").trim()) return true;
-        if (Array.isArray(doc.sections)) {
-          return doc.sections.some(
-            (s) => (s.title || "").trim() || (s.points || "").trim()
-          );
+    function loadState() {
+        try {
+            const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY));
+            if (parsed && parsed.version === 2 && Array.isArray(parsed.documents)) {
+                return parsed;
+            }
+        } catch {
+            // Corrupt state — fall through and start fresh (or migrate).
         }
-        return false;
-      }
+        return null;
+    }
 
-      function deepClone(obj) {
-        // WHY: Avoid accidental mutation on archive objects.
-        return JSON.parse(JSON.stringify(obj));
-      }
+    // One-time conversion of the old React app's localStorage data into the
+    // v2 format. Only runs when no v2 state exists yet.
+    function migrateV1() {
+        let archive = [];
+        let current = null;
+        try { archive = JSON.parse(localStorage.getItem(V1_ARCHIVE_KEY)) || []; } catch { /* ignore */ }
+        try { current = JSON.parse(localStorage.getItem(V1_CURRENT_KEY)); } catch { /* ignore */ }
+        if (archive.length === 0 && !current) return null;
 
-      function areArchivesIdentical(local, remote) {
-        const normalize = (arr) =>
-          [...arr]
-            .map((item) => ({
-              id: item.id,
-              name: item.name,
-              date: item.date,
-              data: {
-                title: item.data?.title?.trim() || "",
-                description: item.data?.description?.trim() || "",
-                sections: (item.data?.sections || []).map((s) => ({
-                  title: s.title?.trim() || "",
-                  points: s.points?.trim() || "",
-                })),
-              },
+        const migrated = {
+            version: 2,
+            currentId: null,
+            documents: archive.map(entry => ({
+                id: String(entry.id),
+                createdAt: entry.date || now(),
+                updatedAt: entry.date || now(),
+                deletedAt: entry.deletedAt || (entry.deleted ? entry.date || now() : null),
+                title: entry.data?.title || '',
+                description: entry.data?.description || '',
+                closer: entry.data?.closer || '',
+                // v1 sections carried numeric ids; drop them — order is enough.
+                sections: (entry.data?.sections || []).map(s => ({
+                    title: s.title || '',
+                    points: s.points || ''
+                }))
             }))
-            .sort((a, b) => a.id.localeCompare(b.id)); // Ensure consistent ordering
+        };
 
-        return (
-          JSON.stringify(normalize(local)) === JSON.stringify(normalize(remote))
-        );
-      }
-
-      /* =========================================================
-       SECTION 2 — ARCHIVE STORE LAYER (localStorage)
-       ---------------------------------------------------------
-       WHY: Data access is isolated. If you switch to IndexedDB later,
-            API consumers don't care.
-       ========================================================= */
-
-      function getArchive() {
-        try {
-          return JSON.parse(localStorage.getItem(STORAGE_ARCHIVE_KEY)) || [];
-        } catch {
-          return [];
-        }
-      }
-
-      function saveArchive(archiveArr) {
-        localStorage.setItem(STORAGE_ARCHIVE_KEY, JSON.stringify(archiveArr));
-      }
-
-      function addToArchive(doc) {
-        const archive = getArchive();
-        const docContent = JSON.stringify({
-          title: doc.title?.trim(),
-          description: doc.description?.trim(),
-          sections: (doc.sections || []).map((s) => ({
-            title: s.title?.trim(),
-            points: s.points?.trim(),
-          })),
-        });
-
-        // 1. If editing an existing archive, update it in place
-        if (currentArchiveId) {
-          const existingIndex = archive.findIndex(
-            (entry) => entry.id === currentArchiveId
-          );
-          if (existingIndex !== -1) {
-            archive[existingIndex] = {
-              ...archive[existingIndex],
-              name: (doc.title && doc.title.trim()) || "Unnamed",
-              date: nowISODate(),
-              data: deepClone(doc),
+        // The v1 "current doc" either pointed at an archive entry
+        // (__archiveId) or was a standalone unsaved document.
+        if (current) {
+            const doc = {
+                ...makeDoc(),
+                title: current.title || '',
+                description: current.description || '',
+                closer: current.closer || '',
+                sections: (current.sections || []).map(s => ({
+                    title: s.title || '',
+                    points: s.points || ''
+                }))
             };
-            saveArchive(archive);
-            return;
-          }
+            const existing = current.__archiveId &&
+                migrated.documents.find(d => d.id === String(current.__archiveId));
+            if (existing) {
+                // The editor copy is the freshest version of that entry.
+                Object.assign(existing, {
+                    title: doc.title,
+                    description: doc.description,
+                    closer: doc.closer,
+                    sections: doc.sections,
+                    updatedAt: now(),
+                    deletedAt: null
+                });
+                migrated.currentId = existing.id;
+            } else if (hasContent(doc)) {
+                migrated.documents.push(doc);
+                migrated.currentId = doc.id;
+            }
         }
 
-        // 2. Otherwise, check for identical content to avoid duplicates
-        const existing = archive.find((entry) => {
-          const existingContent = JSON.stringify({
-            title: entry.data.title?.trim(),
-            description: entry.data.description?.trim(),
-            sections: (entry.data.sections || []).map((s) => ({
-              title: s.title?.trim(),
-              points: s.points?.trim(),
-            })),
-          });
-          return existingContent === docContent;
-        });
+        return migrated;
+    }
 
-        if (existing) {
-          existing.date = nowISODate();
+    /* ============================================================
+     * Document operations
+     * ============================================================ */
+
+    // Mark the current document as edited and save.
+    function touch() {
+        currentDoc().updatedAt = now();
+        persist();
+    }
+
+    // Switch the editor to another document. If the one we're leaving is
+    // completely empty it's removed outright (it never held content, so no
+    // tombstone is needed) — this is what keeps empty docs out of the list.
+    function switchTo(id) {
+        const leaving = currentDoc();
+        if (leaving && leaving.id !== id && !hasContent(leaving)) {
+            state.documents = state.documents.filter(d => d.id !== leaving.id);
+        }
+        state.currentId = id;
+        persist();
+        renderAll();
+    }
+
+    function createNewLog() {
+        const doc = makeDoc();
+        state.documents.push(doc);
+        switchTo(doc.id);
+    }
+
+    function duplicateDoc(id) {
+        const source = state.documents.find(d => d.id === id);
+        if (!source || source.deletedAt) return;
+
+        const copy = structuredClone(source);
+        copy.id = newId();
+        copy.title = `${source.title} (Copy)`;
+        copy.createdAt = now();
+        copy.updatedAt = now();
+
+        state.documents.push(copy);
+        persist();
+        renderLogsList();
+    }
+
+    function deleteDoc(id) {
+        if (!confirm('Delete this log? This cannot be undone.')) return;
+
+        const doc = state.documents.find(d => d.id === id);
+        if (doc && !doc.deletedAt) {
+            doc.deletedAt = now();
+            doc.updatedAt = doc.deletedAt;
+        }
+
+        // If the open document was deleted, move to the newest remaining
+        // one, or a fresh empty document if none are left.
+        if (state.currentId === id) {
+            const next = visibleDocs()[0];
+            if (next) {
+                switchTo(next.id);
+            } else {
+                createNewLog();
+            }
         } else {
-          archive.push({
-            id: crypto.randomUUID
-              ? crypto.randomUUID()
-              : String(Date.now() + Math.random()),
-            name: (doc.title && doc.title.trim()) || "Unnamed",
-            date: nowISODate(),
-            data: deepClone(doc),
-          });
+            persist();
+            renderLogsList();
         }
+    }
 
-        saveArchive(archive);
-      }
+    /* ============================================================
+     * Formatters
+     * ============================================================
+     * Pure functions: document in, paste-ready string out. Adding a new
+     * target site means adding one entry here plus an output pane in the
+     * HTML with matching data-format / data-copy attributes.
+     */
 
-      function deleteFromArchiveById(id) {
-        const archive = getArchive();
-        const updated = archive.filter((item) => item.id !== id);
-        saveArchive(updated);
+    const FORMATTERS = {
+        // Steam announcement (BBCode). Steam has its own title field, so the
+        // title is omitted from the body. Emoji are stripped from section
+        // titles because Steam renders them poorly.
+        steam(doc) {
+            const lines = [doc.description, ''];
+            doc.sections.forEach(section => {
+                lines.push(`[b]${stripEmoji(section.title)}[/b]`, '[list]');
+                splitPoints(section.points).forEach(p => lines.push(`[*] ${p}`));
+                lines.push('[/list]', '');
+            });
+            if (doc.closer.trim()) lines.push(doc.closer);
+            return lines.join('\n');
+        },
 
-        if (currentArchiveId === id) {
-          // Auto-switch to nearest by date
-          if (updated.length > 0) {
-            const sorted = updated.sort(
-              (a, b) => new Date(b.date) - new Date(a.date)
-            );
-            const next = sorted[0];
-            loadArchive(next.id);
-          } else {
-            clearCurrentDocUIAndStorage();
-            currentArchiveId = null;
-          }
+        // Itch.io devlog (Markdown — enable "Prefer Markdown input where
+        // available" in itch.io account settings). Like Steam, a devlog post
+        // has its own title field, so the title is omitted from the body.
+        // Emoji are kept; itch renders them fine.
+        itch(doc) {
+            const lines = [doc.description, ''];
+            doc.sections.forEach(section => {
+                lines.push(`## ${section.title}`, '');
+                splitPoints(section.points).forEach(p => lines.push(`- ${p}`));
+                lines.push('');
+            });
+            if (doc.closer.trim()) lines.push(doc.closer);
+            return lines.join('\n');
+        },
+
+        // Discord message (Markdown). The title is included and bolded since
+        // a chat message has no separate title field. Sections are divided
+        // by horizontal rules, except before the closer.
+        discord(doc) {
+            const lines = [`**${doc.title}**`, '', doc.description, '', '---'];
+            doc.sections.forEach((section, index) => {
+                lines.push(`**${section.title}**`);
+                splitPoints(section.points).forEach(p => lines.push(`- ${p}`));
+                // Only add a separator if this isn't the last section, or if
+                // there's no closer to end on.
+                if (index < doc.sections.length - 1 || !doc.closer.trim()) {
+                    lines.push('', '---');
+                } else {
+                    lines.push('');
+                }
+            });
+            if (doc.closer.trim()) lines.push(doc.closer);
+            return lines.join('\n');
         }
-      }
+    };
 
-      function findArchiveById(id) {
-        return getArchive().find((item) => item.id === id);
-      }
+    /* ============================================================
+     * Rendering
+     * ============================================================
+     * Two tiers to avoid stealing focus while typing:
+     *   - renderDerived(): preview + output panes. Runs on every keystroke;
+     *     never touches the editor inputs.
+     *   - renderSections()/renderAll(): rebuilds editor inputs. Only runs on
+     *     structural changes (add/move/remove section, switching documents).
+     */
 
-      /* =========================================================
-       SECTION 3 — CURRENT DOC SERIALIZATION
-       ---------------------------------------------------------
-       WHY: Central place to read/write the current in-progress log.
-       ========================================================= */
+    function autoResize(textarea) {
+        textarea.style.height = 'auto';
+        textarea.style.height = `${textarea.scrollHeight + 4}px`;
+    }
 
-      function getCurrentDocFromUI() {
-        const title = document.getElementById("title").value;
-        const description = document.getElementById("description").value;
-        const sections = [...sectionsEl.querySelectorAll(".section")].map(
-          (section) => ({
-            id: parseInt(section.dataset.id),
-            title: section.querySelector(".section-title").value,
-            points: section.querySelector(".section-points").value,
-          })
-        );
-        return { title, description, sections };
-      }
+    // Rebuild the editable section rows from the current document.
+    function renderSections() {
+        const doc = currentDoc();
+        const container = $('#sections');
+        container.replaceChildren();
 
-      function saveCurrentDocToLocalStorage() {
-        debounceSave(() => {
-          const data = getCurrentDocFromUI();
-          localStorage.setItem(
-            STORAGE_CURRENT_KEY,
-            JSON.stringify({
-              ...data,
-              __archiveId: currentArchiveId || null,
-            })
-          );
+        doc.sections.forEach((section, index) => {
+            const row = document.createElement('div');
+            row.className = 'update-formatter-section';
+            row.dataset.index = index;
+            row.innerHTML = `
+                <div class="update-formatter-section-content">
+                    <div class="update-formatter-section-inputs">
+                        <input type="text" class="update-formatter-section-title-input"
+                               data-field="title" placeholder="e.g. 🚀 Launch Content Highlights">
+                        <textarea class="update-formatter-section-points-textarea" rows="1"
+                                  data-field="points" data-autoresize
+                                  placeholder="Bullet point 1&#10;Bullet point 2"></textarea>
+                    </div>
+                    <div class="update-formatter-section-controls">
+                        <button class="update-formatter-btn update-formatter-btn-move" data-action="up">↑</button>
+                        <button class="update-formatter-btn update-formatter-btn-move" data-action="down">↓</button>
+                        <button class="update-formatter-btn update-formatter-btn-remove" data-action="remove">Remove</button>
+                    </div>
+                </div>`;
+            // Values are set via .value (not interpolated into the HTML) so
+            // user content can never be parsed as markup.
+            row.querySelector('[data-field="title"]').value = section.title;
+            const points = row.querySelector('[data-field="points"]');
+            points.value = section.points;
+            container.appendChild(row);
+            autoResize(points);
         });
-      }
+    }
 
-      function loadCurrentDocFromLocalStorage() {
-        const raw = localStorage.getItem(STORAGE_CURRENT_KEY);
-        if (!raw) return null;
-        try {
-          const parsed = JSON.parse(raw);
-          currentArchiveId = parsed.__archiveId || null;
-          return parsed;
-        } catch {
-          return null;
-        }
-      }
+    // Rebuild the read-only preview. Everything is inserted via textContent,
+    // so user input is never interpreted as HTML.
+    function renderPreview() {
+        const doc = currentDoc();
+        const preview = $('#preview');
+        preview.replaceChildren();
 
-      function clearCurrentDocUIAndStorage() {
-        document.getElementById("title").value = "";
-        document.getElementById("description").value = "";
-        sectionsEl.innerHTML = "";
-        localStorage.removeItem(STORAGE_CURRENT_KEY);
-        document.getElementById("steamText").textContent = "";
-        document.getElementById("discordText").textContent = "";
-        document.getElementById("generalPreview").innerHTML = "";
-        sectionIdCounter = 0;
-      }
-
-      /* =========================================================
-       SECTION 4 — UI: SECTIONS CRUD
-       ========================================================= */
-
-      function bindSectionEvents(sectionDiv) {
-        const titleInput = sectionDiv.querySelector(".section-title");
-        const pointsTextarea = sectionDiv.querySelector(".section-points");
-        const handler = () => {
-          autoResizeTextarea(pointsTextarea);
-          saveCurrentDocToLocalStorage();
-          generateOutput();
-        };
-        titleInput.addEventListener("input", handler);
-        pointsTextarea.addEventListener("input", handler);
-        autoResizeTextarea(pointsTextarea);
-      }
-
-      function sectionTemplate(id) {
-        return `
-        <div class="section" data-id="${id}">
-          <div class="section-content-wrapper">
-            <div style="flex-grow: 1;">
-              <input type="text" class="section-title" placeholder="e.g. 🚀 Launch Content Highlights"/>
-              <textarea class="section-points" rows="4" placeholder="Bullet point 1\nBullet point 2"></textarea>
-            </div>
-            <div class="section-controls">
-              <button onclick="moveSection(${id}, -1)">↑</button>
-              <button onclick="moveSection(${id}, 1)">↓</button>
-              <button class="remove-button" onmousedown="startRemove(event, ${id})" onmouseup="cancelRemove(${id})" onmouseleave="cancelRemove(${id})">
-                Remove
-              </button>
-            </div>
-          </div>
-        </div>`;
-      }
-
-      function addSection(title = "", points = "", id = null) {
-        if (id === null) id = sectionIdCounter++;
-        else sectionIdCounter = Math.max(sectionIdCounter, id + 1);
-        const wrapper = document.createElement("div");
-        wrapper.innerHTML = sectionTemplate(id);
-        const section = wrapper.firstElementChild;
-        sectionsEl.appendChild(section);
-        section.querySelector(".section-title").value = title;
-        section.querySelector(".section-points").value = points;
-        bindSectionEvents(section);
-        saveCurrentDocToLocalStorage();
-        generateOutput();
-      }
-
-      function moveSection(id, direction) {
-        const section = [...sectionsEl.children].find(
-          (s) => s.dataset.id == id
-        );
-        if (!section) return;
-        const newIndex = [...sectionsEl.children].indexOf(section) + direction;
-        if (newIndex < 0 || newIndex >= sectionsEl.children.length) return;
-        sectionsEl.insertBefore(
-          section,
-          sectionsEl.children[newIndex + (direction > 0 ? 1 : 0)]
-        );
-        saveCurrentDocToLocalStorage();
-        generateOutput();
-      }
-
-      function startRemove(event, id) {
-        openConfirmActionModal({
-          title: "Delete Section?",
-          message: "This will permanently delete this section.",
-          onConfirm: () => {
-            removeSection(id);
-            saveCurrentDocToLocalStorage();
-            generateOutput();
-          },
-        });
-      }
-
-      function cancelRemove(id) {
-        const progressBar = document.getElementById(`progress-${id}`);
-        progressBar.style.transition = "none";
-        progressBar.style.width = "0%";
-        clearTimeout(removeTimers[id]);
-      }
-
-      function removeSection(id) {
-        const section = [...sectionsEl.children].find(
-          (s) => s.dataset.id == id
-        );
-        if (section) section.remove();
-      }
-
-      /* =========================================================
-       SECTION 5 — OUTPUT GENERATION
-       ========================================================= */
-
-      function generateOutput() {
-        const title = document.getElementById("title").value.trim();
-        const desc = document.getElementById("description").value.trim();
-        const sections = [...sectionsEl.querySelectorAll(".section")].map(
-          (section) => ({
-            title: section.querySelector(".section-title").value.trim(),
-            points: section
-              .querySelector(".section-points")
-              .value.trim()
-              .split("\n")
-              .map((p) => p.trim())
-              .filter(Boolean),
-          })
-        );
-
-        const discordLines = [`**${title}**`, "", desc, "", "---"];
-        const steamLines = [desc, ""];
-        const previewHTML = [];
-
-        if (title) previewHTML.push(`<h2>${title}</h2>`);
-        if (desc) previewHTML.push(`<p>${desc}</p>`);
-
-        for (let section of sections) {
-          const emojiTitle = section.title;
-          const plainTitle = section.title
-            .replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, "")
-            .trim();
-          steamLines.push(`[b]${plainTitle}[/b]`, "[list]");
-          section.points.forEach((p) => steamLines.push(`[*] ${p}`));
-          steamLines.push("[/list]", "");
-
-          discordLines.push(`${emojiTitle}`);
-          section.points.forEach((p) => discordLines.push(`- **${p}**`));
-          discordLines.push("", "---");
-
-          previewHTML.push(`<h3>${emojiTitle}</h3><ul>`);
-          section.points.forEach((p) => previewHTML.push(`<li>${p}</li>`));
-          previewHTML.push(`</ul>`);
-        }
-
-        document.getElementById("steamText").textContent =
-          steamLines.join("\n");
-        document.getElementById("discordText").textContent =
-          discordLines.join("\n");
-        document.getElementById("generalPreview").innerHTML =
-          previewHTML.join("\n");
-      }
-
-      function copyToClipboard(id) {
-        const el = document.getElementById(id).querySelector("div");
-        navigator.clipboard.writeText(el.textContent).then(() => {
-          alert(`${id} copied to clipboard.`);
-        });
-      }
-
-      /* =========================================================
-       SECTION 6 — ARCHIVE ACTIONS
-       ========================================================= */
-
-      function archiveCurrentAndClear() {
-        const current = getCurrentDocFromUI();
-        if (!hasContent(current)) {
-          alert("Nothing to archive.");
-          return;
-        }
-        addToArchive(current);
-        clearCurrentDocUIAndStorage();
-        alert("Archived and cleared.");
-      }
-
-      function openArchiveModal() {
-        if (!currentArchiveId) {
-          const raw = localStorage.getItem(STORAGE_CURRENT_KEY);
-          if (raw) {
-            try {
-              const parsed = JSON.parse(raw);
-              currentArchiveId = parsed.__archiveId || null;
-            } catch {
-              currentArchiveId = null;
-            }
-          }
-        }
-        renderArchiveList();
-        document.getElementById("archiveModalBackdrop").style.display = "flex";
-        hideSideButtons(); // Hide side buttons while in archive modal
-      }
-
-      function closeArchiveModal() {
-        document.getElementById("archiveModalBackdrop").style.display = "none";
-        showSideButtons();
-      }
-
-      function openDataManagementModal() {
-        document.getElementById("dataManagementModalBackdrop").style.display =
-          "flex"; // Show the modal
-        hideSideButtons(); // Hide side buttons while in data management
-      }
-
-      function closeDataManagementModal() {
-        document.getElementById("dataManagementModalBackdrop").style.display =
-          "none"; // Hide the modal
-        showSideButtons();
-      }
-
-      function hideSideButtons() {
-        document.getElementById("loadArchiveBtn").style.display = "none";
-        document.getElementById("dataManagementButton").style.display = "none";
-      }
-
-      function showSideButtons() {
-        document.getElementById("loadArchiveBtn").style.display = "flex";
-        document.getElementById("dataManagementButton").style.display = "flex";
-      }
-
-      function renderArchiveList() {
-        const listEl = document.getElementById("archiveList");
-        const archive = getArchive().sort(
-          (a, b) => new Date(b.date) - new Date(a.date)
-        );
-
-        if (archive.length === 0) {
-          listEl.innerHTML = `<p>No archived logs yet.</p>`;
-          return;
-        }
-
-        listEl.innerHTML = "";
-        archive.forEach((item) => {
-          const isCurrent = item.id === currentArchiveId;
-          const row = document.createElement("div");
-          row.className = "archive-item";
-
-          const currentLabel = isCurrent
-            ? '<span class="current-label">(Current)</span>'
-            : "";
-
-          const loadButton = isCurrent
-            ? `<button disabled title="Currently loaded">Load</button>`
-            : `<button onclick="loadArchive('${item.id}')">Load</button>`;
-
-          row.innerHTML = `
-    <div class="archive-item-info">
-      <span class="archive-item-title">${escapeHtml(item.name)}</span>
-      <span class="archive-item-date">${new Date(
-        item.date
-      ).toLocaleString()}</span>
-      ${currentLabel}
-    </div>
-    <div class="archive-item-buttons">
-      ${loadButton}
-      <button onclick="duplicateArchive('${item.id}')">Duplicate</button>
-      <button class="delete-archive-button"
-        onmousedown="startDeleteArchive('${item.id}')"
-        onmouseup="cancelDeleteArchive('${item.id}')"
-        onmouseleave="cancelDeleteArchive('${item.id}')">
-        <div class="delete-archive-progress" id="archiveProgress-${
-          item.id
-        }"></div>
-        Delete
-      </button>
-    </div>
-  `;
-
-          listEl.appendChild(row);
-        });
-      }
-
-      function loadArchive(id) {
-        // 1) If current doc has content, auto-archive it (spec).
-        const current = getCurrentDocFromUI();
-        if (hasContent(current)) {
-          addToArchive(current);
-        }
-
-        // 2) Load selected archive doc into UI and keep it as the "current doc"
-        const item = findArchiveById(id);
-        if (!item) {
-          alert("Archive item not found.");
-          return;
-        }
-
-        currentArchiveId = id;
-
-        // Clear UI and set from archive
-        clearCurrentDocUIAndStorage();
-        const { title, description, sections } = item.data;
-
-        document.getElementById("title").value = title || "";
-        document.getElementById("description").value = description || "";
-
-        (sections || []).forEach((sec) =>
-          addSection(sec.title || "", sec.points || "", sec.id ?? null)
-        );
-
-        // Save it as current
-        localStorage.setItem(
-          STORAGE_CURRENT_KEY,
-          JSON.stringify(getCurrentDocFromUI())
-        );
-        generateOutput();
-
-        // Close modal
-        closeArchiveModal();
-      }
-
-      function duplicateArchive(id) {
-        const archive = getArchive();
-        const item = archive.find((a) => a.id === id);
-        if (!item) return;
-
-        const copy = deepClone(item);
-        copy.id = crypto.randomUUID
-          ? crypto.randomUUID()
-          : String(Date.now() + Math.random());
-        copy.name = `${item.name} (Copy)`;
-        copy.date = nowISODate();
-
-        // Ensure unique section IDs
-        if (Array.isArray(copy.data.sections)) {
-          copy.data.sections = copy.data.sections.map((s) => ({
-            ...s,
-            id: sectionIdCounter++,
-          }));
-        }
-
-        archive.push(copy);
-        saveArchive(archive);
-        renderArchiveList();
-      }
-
-      function startDeleteArchive(id) {
-        openConfirmActionModal({
-          title: "Delete Archive?",
-          message: "This archive will be permanently deleted.",
-          onConfirm: () => {
-            deleteFromArchiveById(id);
-            renderArchiveList();
-          },
-        });
-      }
-
-      function cancelDeleteArchive(id) {
-        const bar = document.getElementById(`archiveProgress-${id}`);
-        if (!bar) return;
-        bar.style.transition = "none";
-        bar.style.width = "0%";
-        clearTimeout(archiveDeleteTimers[id]);
-      }
-
-      /* =========================================================
-       SECTION 7 — MISC HELPERS
-       ---------------------------------------------------------
-       ========================================================= */
-
-      function escapeHtml(str) {
-        // WHY: Defensive programming for titles from user input.
-        return (str || "").replace(
-          /[&<>"']/g,
-          (s) =>
-            ({
-              "&": "&amp;",
-              "<": "&lt;",
-              ">": "&gt;",
-              '"': "&quot;",
-              "'": "&#39;",
-            }[s])
-        );
-      }
-
-      function createNewLogFromModal() {
-        const current = getCurrentDocFromUI();
-        if (hasContent(current)) {
-          addToArchive(current);
-        }
-        clearCurrentDocUIAndStorage();
-        currentArchiveId = null;
-        closeArchiveModal();
-      }
-
-      let pendingConfirmation = null;
-
-      function openConfirmActionModal({
-        title = "Are you sure?",
-        message = "This action cannot be undone.",
-        onConfirm,
-      }) {
-        document.getElementById("confirmActionTitle").textContent = title;
-        document.getElementById("confirmActionMessage").textContent = message;
-
-        const confirmButton = document.getElementById("confirmActionButton");
-        confirmButton.onclick = () => {
-          if (typeof pendingConfirmation === "function") pendingConfirmation();
-          closeConfirmActionModal();
+        const add = (tag, className, text) => {
+            const el = document.createElement(tag);
+            if (className) el.className = className;
+            el.textContent = text;
+            preview.appendChild(el);
+            return el;
         };
 
-        pendingConfirmation = onConfirm;
-        document.getElementById("confirmActionModalBackdrop").style.display =
-          "flex";
-        hideSideButtons();
-      }
-
-      function closeConfirmActionModal() {
-        document.getElementById("confirmActionModalBackdrop").style.display =
-          "none";
-        showSideButtons();
-        pendingConfirmation = null;
-      }
-
-      function cancelActionConfirmation() {
-        closeConfirmActionModal();
-      }
-
-      /* =========================================================
-       SECTION 8 — BOOTSTRAP
-       ---------------------------------------------------------
-       WHY: On load, restore the last working draft, then keep
-            regenerating outputs as the user types.
-       ========================================================= */
-
-      document.addEventListener("DOMContentLoaded", () => {
-        const data = loadCurrentDocFromLocalStorage();
-        loadSyncKey(); // Load sync key on startup
-        syncToCloud(); // Initial sync to cloud
-        if (data) {
-          document.getElementById("title").value = data.title || "";
-          document.getElementById("description").value = data.description || "";
-          (data.sections || []).forEach((sec) =>
-            addSection(sec.title, sec.points)
-          );
+        if (!hasContent(doc)) {
+            add('p', 'update-formatter-preview-empty',
+                'Nothing to preview yet — add some content in the Editor.');
+            return;
         }
 
-        // Bind change handlers for top-level inputs
-        document.getElementById("title").addEventListener("input", () => {
-          saveCurrentDocToLocalStorage();
-          generateOutput();
-        });
-        document.getElementById("description").addEventListener("input", () => {
-          saveCurrentDocToLocalStorage();
-          generateOutput();
-        });
-        document.addEventListener("keydown", (e) => {
-          if (e.key === "Escape") {
-            const modal = document.getElementById("archiveModalBackdrop");
-            if (modal && modal.style.display === "flex") {
-              closeArchiveModal();
-            }
-            const dataModal = document.getElementById(
-              "dataManagementModalBackdrop"
-            );
-            if (dataModal && dataModal.style.display === "flex") {
-              closeDataManagementModal();
-            }
-          }
+        if (doc.title) add('h2', null, doc.title);
+        if (doc.description) add('p', null, doc.description);
+
+        doc.sections.forEach(section => {
+            add('h3', 'update-formatter-preview-section-title', section.title);
+            const list = document.createElement('ul');
+            list.className = 'update-formatter-preview-list';
+            splitPoints(section.points).forEach(point => {
+                const item = document.createElement('li');
+                item.className = 'update-formatter-preview-list-item';
+                item.textContent = point;
+                list.appendChild(item);
+            });
+            preview.appendChild(list);
         });
 
-        generateOutput();
-      });
-      /* =========================================================
-       SECTION 9 — EXPOERT AND IMPORT DATA
-       ---------------------------------------------------------
-       ========================================================= */
+        if (doc.closer) add('p', 'update-formatter-preview-closer', doc.closer);
+    }
 
-      //  Exports all data from localStorage as a JSON file
-      //  This is useful for backing up or transferring data
-      function exportData() {
-        const data = localStorage.getItem(STORAGE_CURRENT_KEY);
-        const archive = getArchive();
-        const exportData = {
-          current: data ? JSON.parse(data) : null,
-          archive: archive.map((item) => ({
-            id: item.id,
-            name: item.name,
-            date: item.date,
-            data: item.data,
-          })),
+    // Preview + output panes; safe to run on every keystroke.
+    function renderDerived() {
+        const doc = currentDoc();
+        renderPreview();
+        document.querySelectorAll('[data-format]').forEach(pane => {
+            pane.textContent = FORMATTERS[pane.dataset.format](doc);
+        });
+    }
+
+    function renderLogsList() {
+        const list = $('#logs-list');
+        list.replaceChildren();
+        const docs = visibleDocs();
+
+        if (docs.length === 0 || (docs.length === 1 && !hasContent(docs[0]))) {
+            const empty = document.createElement('p');
+            empty.className = 'update-formatter-archive-empty';
+            empty.textContent = 'No logs yet.';
+            list.appendChild(empty);
+            return;
+        }
+
+        docs.forEach(doc => {
+            // Don't list a brand-new empty document — it only becomes a
+            // "real" log once something is typed into it.
+            if (!hasContent(doc)) return;
+
+            const isCurrent = doc.id === state.currentId;
+            const item = document.createElement('div');
+            item.className = 'update-formatter-archive-item';
+            item.innerHTML = `
+                <div class="update-formatter-archive-item-info">
+                    <span class="update-formatter-archive-item-name"></span>
+                    <span class="update-formatter-archive-item-date">
+                        ${new Date(doc.updatedAt).toLocaleString()}
+                        ${isCurrent ? '<span class="update-formatter-archive-item-current">(Current)</span>' : ''}
+                    </span>
+                </div>
+                <div class="update-formatter-archive-item-actions">
+                    <button class="update-formatter-archive-btn update-formatter-archive-btn-load"
+                            data-action="load" ${isCurrent ? 'disabled' : ''}>Load</button>
+                    <button class="update-formatter-archive-btn update-formatter-archive-btn-duplicate"
+                            data-action="duplicate">Duplicate</button>
+                    <button class="update-formatter-archive-btn update-formatter-archive-btn-delete"
+                            data-action="delete">Delete</button>
+                </div>`;
+            item.dataset.id = doc.id;
+            // Title via textContent — see renderSections() note.
+            item.querySelector('.update-formatter-archive-item-name').textContent =
+                doc.title.trim() || 'Untitled';
+            list.appendChild(item);
+        });
+    }
+
+    // Show one view (editor / preview / one of the outputs) and hide the
+    // rest. Buttons and panels are matched by data-view-btn -> data-view.
+    function setView(view) {
+        document.querySelectorAll('[data-view]').forEach(panel => {
+            panel.hidden = panel.dataset.view !== view;
+        });
+        document.querySelectorAll('[data-view-btn]').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.viewBtn === view);
+        });
+        // Textareas can't measure their content while hidden, so re-run
+        // auto-resize whenever the editor becomes visible.
+        if (view === 'editor') {
+            document.querySelectorAll('textarea[data-autoresize]').forEach(autoResize);
+        }
+    }
+
+    // Full re-render: editor fields + everything derived.
+    function renderAll() {
+        const doc = currentDoc();
+        $('#doc-title').value = doc.title;
+        $('#doc-description').value = doc.description;
+        $('#doc-closer').value = doc.closer;
+        autoResize($('#doc-description'));
+        autoResize($('#doc-closer'));
+        renderSections();
+        renderDerived();
+    }
+
+    /* ============================================================
+     * Export / Import
+     * ============================================================ */
+
+    function exportData() {
+        const payload = {
+            version: 2,
+            exportedAt: now(),
+            documents: state.documents
         };
-
-        const blob = new Blob([JSON.stringify(exportData, null, 2)], {
-          type: "application/json",
-        });
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
+        const a = document.createElement('a');
         a.href = url;
-        // Get a timestamp for the filename, only year, month, day
-        const timestamp = new Date().toISOString().split("T")[0];
-        // Use the timestamp in the filename
-        a.download = `${timestamp} bowtiecat-update-formatter.json`;
+        a.download = `${now().split('T')[0]} update-formatter.json`;
         a.click();
         URL.revokeObjectURL(url);
-        closeDataManagementModal();
-      }
+        $('#data-modal').close();
+    }
 
-      function openImportDialog() {
-        const input = document.createElement("input");
-        input.type = "file";
-        input.accept = ".json";
-        input.onchange = (e) => {
-          const file = e.target.files[0];
-          if (file) {
-            importData(file);
-          }
-        };
-        input.click();
-      }
-
-      // Imports data from a JSON file and updates localStorage. This appends the current data with the archive data and integrates it into the existing archive. Excludes duplicate entries.
-      function importData(file) {
+    // Merge documents from an export file into the local state. Accepts both
+    // the v2 format ({ documents }) and old v1 exports ({ current, archive }).
+    // Documents whose id already exists locally are skipped.
+    function importData(file) {
         const reader = new FileReader();
         reader.onload = (e) => {
-          try {
-            const data = JSON.parse(e.target.result);
-            if (data.current) {
-              localStorage.setItem(
-                STORAGE_CURRENT_KEY,
-                JSON.stringify(data.current)
-              );
-            }
-            const existingArchive = getArchive();
-            const newArchive = data.archive || [];
-            newArchive.forEach((item) => {
-              if (
-                !existingArchive.some((entry) => entry.id === item.id) &&
-                hasContent(item.data)
-              ) {
-                existingArchive.push({
-                  ...item,
-                  date: nowISODate(),
+            try {
+                const data = JSON.parse(e.target.result);
+                let incoming = [];
+
+                if (Array.isArray(data.documents)) {
+                    // v2 export
+                    incoming = data.documents;
+                } else if (Array.isArray(data.archive)) {
+                    // v1 export — reuse the migration converter by feeding it
+                    // through the same shape mapping.
+                    incoming = data.archive.map(entry => ({
+                        id: String(entry.id),
+                        createdAt: entry.date || now(),
+                        updatedAt: entry.date || now(),
+                        deletedAt: entry.deletedAt || (entry.deleted ? entry.date || now() : null),
+                        title: entry.data?.title || '',
+                        description: entry.data?.description || '',
+                        closer: entry.data?.closer || '',
+                        sections: (entry.data?.sections || []).map(s => ({
+                            title: s.title || '',
+                            points: s.points || ''
+                        }))
+                    }));
+                } else {
+                    throw new Error('Unrecognized file format.');
+                }
+
+                // v1 exports also carried the unsaved editor document; bring
+                // it in as its own log if it isn't already in the archive.
+                if (!Array.isArray(data.documents) && data.current &&
+                    !data.current.__archiveId && hasContent(data.current)) {
+                    incoming.push({
+                        ...makeDoc(),
+                        title: data.current.title || '',
+                        description: data.current.description || '',
+                        closer: data.current.closer || '',
+                        sections: (data.current.sections || []).map(s => ({
+                            title: s.title || '',
+                            points: s.points || ''
+                        }))
+                    });
+                }
+
+                let added = 0;
+                incoming.forEach(doc => {
+                    if (!state.documents.some(d => d.id === doc.id) && hasContent(doc)) {
+                        state.documents.push(doc);
+                        added++;
+                    }
                 });
-              }
-            });
-            saveArchive(existingArchive);
-            renderArchiveList();
-            alert("Data imported successfully.");
-          } catch (err) {
-            alert("Failed to import data: " + err.message);
-          }
+
+                persist();
+                renderLogsList();
+                alert(`Import complete. ${added} log(s) added.`);
+            } catch (err) {
+                alert(`Failed to import data: ${err.message}`);
+            }
         };
         reader.readAsText(file);
-        closeDataManagementModal();
-      }
-      /* =========================================================
-       SECTION 10 - UUID SYNC KEY
-        ---------------------------------------------------------
-        WHY: Allows users to set a UUID for syncing data across devices.
-        ========================================================= */
+        $('#data-modal').close();
+    }
 
-      // An example of working database access
+    /* ============================================================
+     * Cloud sync (NOT IMPLEMENTED — seam for the future)
+     * ============================================================
+     * The old Supabase sync was removed, but the data model keeps
+     * everything a future implementation needs:
+     *
+     *   - Each document has a stable id, an updatedAt timestamp, and a
+     *     deletedAt tombstone, which together support a simple merge:
+     *       * unknown id            -> copy across
+     *       * both sides have id    -> newer updatedAt wins
+     *       * deletedAt set         -> deletion wins over edits
+     *   - Tombstoned documents are retained locally (never shown), so a
+     *     deletion can propagate to other devices before being pruned.
+     *   - All persistence goes through persist()/loadState(), so a sync
+     *     engine can piggyback on persist() to schedule pushes, and merge
+     *     remote data by rewriting `state` and calling renderAll().
+     *
+     * Implement by filling in pull()/push() and calling them from init()
+     * and persist() respectively.
+     */
+    const CloudSync = {
+        async pull() { /* fetch remote documents and merge into state */ },
+        async push() { /* upload state.documents to the remote store */ }
+    };
 
-      let syncConfirmTimer;
+    /* ============================================================
+     * Event wiring
+     * ============================================================ */
 
-      function cancelSyncConfirmation() {
-        clearTimeout(syncConfirmTimer);
-        closeSyncConfirmation();
-      }
+    function bindEvents() {
+        // --- View switcher ---
+        $('#view-switcher').addEventListener('click', (e) => {
+            const view = e.target.dataset.viewBtn;
+            if (view) setView(view);
+        });
 
-      function closeSyncConfirmation() {
-        document.getElementById("syncConfirmModalBackdrop").style.display =
-          "none";
-        showSideButtons();
-      }
+        // --- Top-level fields (input events update state; derived views
+        //     re-render, but the inputs themselves are left alone) ---
+        $('#doc-title').addEventListener('input', (e) => {
+            currentDoc().title = e.target.value;
+            touch();
+            renderDerived();
+        });
+        $('#doc-description').addEventListener('input', (e) => {
+            currentDoc().description = e.target.value;
+            touch();
+            renderDerived();
+        });
+        $('#doc-closer').addEventListener('input', (e) => {
+            currentDoc().closer = e.target.value;
+            touch();
+            renderDerived();
+        });
 
-      function openSyncConfirmationModal(resolvedKey, remoteData) {
-        window.pendingConfirmedSync = {
-          key: resolvedKey,
-          cloudData: remoteData,
-        };
-        document.getElementById("syncConfirmModalBackdrop").style.display =
-          "flex";
-        hideSideButtons();
-      }
+        // Auto-resize any textarea marked with data-autoresize (delegated so
+        // it also covers section rows created later).
+        document.addEventListener('input', (e) => {
+            if (e.target.matches('textarea[data-autoresize]')) autoResize(e.target);
+        });
 
-      function performConfirmedSync() {
-        const { key, cloudData } = window.pendingConfirmedSync;
+        // --- Sections (delegated to the container; rows carry their index) ---
+        $('#add-section-btn').addEventListener('click', () => {
+            currentDoc().sections.push({ title: '', points: '' });
+            touch();
+            renderSections();
+            renderDerived();
+            // Put the cursor in the new section's title.
+            const rows = $('#sections').children;
+            rows[rows.length - 1].querySelector('input').focus();
+        });
 
-        // Overwrite local data
-        localStorage.setItem(STORAGE_ARCHIVE_KEY, JSON.stringify(cloudData));
+        $('#sections').addEventListener('input', (e) => {
+            const row = e.target.closest('.update-formatter-section');
+            const field = e.target.dataset.field;
+            if (!row || !field) return;
+            currentDoc().sections[Number(row.dataset.index)][field] = e.target.value;
+            touch();
+            renderDerived();
+        });
 
-        if (cloudData.length > 0) {
-          const latest = cloudData[cloudData.length - 1];
-          localStorage.setItem(
-            STORAGE_CURRENT_KEY,
-            JSON.stringify({
-              ...latest.data,
-              __archiveId: latest.id,
-            })
-          );
-        } else {
-          localStorage.removeItem(STORAGE_CURRENT_KEY);
-        }
+        $('#sections').addEventListener('click', (e) => {
+            const action = e.target.dataset.action;
+            const row = e.target.closest('.update-formatter-section');
+            if (!action || !row) return;
 
-        localStorage.setItem("syncKey", key);
-        loadSyncKey();
-        location.reload();
-      }
+            const sections = currentDoc().sections;
+            const index = Number(row.dataset.index);
 
-      function archiveCurrentBeforeSync() {
-        const currentDoc = getCurrentDocFromUI();
-        if (hasContent(currentDoc)) {
-          addToArchive(currentDoc); // updates local archive
-        }
-      }
+            if (action === 'remove') {
+                if (!confirm('Remove this section? This cannot be undone.')) return;
+                sections.splice(index, 1);
+            } else {
+                const target = action === 'up' ? index - 1 : index + 1;
+                if (target < 0 || target >= sections.length) return;
+                [sections[index], sections[target]] = [sections[target], sections[index]];
+            }
+            touch();
+            renderSections();
+            renderDerived();
+        });
 
-      async function saveSyncKey() {
-        const key = document.getElementById("syncKeyInput").value.trim();
-        if (!key) {
-          alert("Please enter a valid UUID.");
-          return;
-        }
-
-        archiveCurrentBeforeSync();
-
-        await syncToCloud();
-
-        try {
-          const { data: exists, error } = await supabase
-            .from(TABLE_NAME)
-            .select("data")
-            .eq("id", key)
-            .maybeSingle();
-
-          if (error) {
-            alert("Failed to check sync ID: " + error.message);
-            return;
-          }
-
-          if (!exists) {
-            await supabase.from(TABLE_NAME).insert({
-              id: key,
-              data: getArchive(),
+        // --- Copy buttons ---
+        document.querySelectorAll('[data-copy]').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const text = FORMATTERS[btn.dataset.copy](currentDoc());
+                try {
+                    await navigator.clipboard.writeText(text);
+                    // Brief inline confirmation instead of an alert.
+                    btn.textContent = 'Copied!';
+                    setTimeout(() => { btn.textContent = 'Copy'; }, 1500);
+                } catch (err) {
+                    alert(`Failed to copy: ${err.message}`);
+                }
             });
-            localStorage.setItem("syncKey", key);
-            loadSyncKey();
-            alert("New sync ID created. Your data will now sync to the cloud.");
-          } else {
-            const remoteData = exists.data;
+        });
 
-            if (!Array.isArray(remoteData)) {
-              alert("Malformed cloud data detected. Sync aborted.");
-              return;
+        // --- Modals (native <dialog>; Esc closes automatically) ---
+        $('#fab-logs').addEventListener('click', () => {
+            renderLogsList();
+            $('#logs-modal').showModal();
+        });
+        $('#fab-data').addEventListener('click', () => $('#data-modal').showModal());
+
+        document.querySelectorAll('dialog').forEach(dialog => {
+            dialog.querySelector('[data-close]').addEventListener('click', () => dialog.close());
+            // Clicking the backdrop closes the dialog (the backdrop is the
+            // dialog element itself; clicks on children hit other targets).
+            dialog.addEventListener('click', (e) => {
+                if (e.target === dialog) dialog.close();
+            });
+        });
+
+        // --- Logs modal actions ---
+        $('#new-log-btn').addEventListener('click', () => {
+            createNewLog();
+            setView('editor'); // a fresh log starts with typing
+            $('#logs-modal').close();
+        });
+
+        $('#logs-list').addEventListener('click', (e) => {
+            const action = e.target.dataset.action;
+            const item = e.target.closest('.update-formatter-archive-item');
+            if (!action || !item) return;
+            const id = item.dataset.id;
+
+            if (action === 'load') {
+                switchTo(id);
+                $('#logs-modal').close();
+            } else if (action === 'duplicate') {
+                duplicateDoc(id);
+            } else if (action === 'delete') {
+                deleteDoc(id);
+                renderLogsList();
             }
+        });
 
-            const localData = getArchive();
+        // --- Data modal actions ---
+        $('#export-btn').addEventListener('click', exportData);
+        $('#import-btn').addEventListener('click', () => {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = () => input.files[0] && importData(input.files[0]);
+            input.click();
+        });
 
-            if (areArchivesIdentical(localData, remoteData)) {
-              // Archives match — no confirmation needed
-              localStorage.setItem("syncKey", key);
-              loadSyncKey();
-              alert("Sync ID changed. Local and cloud data are identical.");
-            } else {
-              // Show warning — data mismatch
-              openSyncConfirmationModal(key, remoteData);
-            }
-          }
-        } catch (err) {
-          alert("Unexpected error: " + err.message);
+        // Flush any pending debounced save before the page unloads.
+        window.addEventListener('beforeunload', () => {
+            clearTimeout(saveTimeout);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        });
+    }
+
+    /* ============================================================
+     * Init
+     * ============================================================ */
+
+    function init() {
+        // Load v2 state, or migrate v1 data, or start fresh.
+        state = loadState() || migrateV1() || { version: 2, currentId: null, documents: [] };
+
+        // Guarantee there is always a valid current document to edit.
+        const current = state.documents.find(d => d.id === state.currentId && !d.deletedAt);
+        if (!current) {
+            const fallback = visibleDocs()[0] || makeDoc();
+            if (!state.documents.includes(fallback)) state.documents.push(fallback);
+            state.currentId = fallback.id;
         }
-      }
 
-      function loadSyncKey() {
-        const key = localStorage.getItem("syncKey");
-        if (key) {
-          document.getElementById("syncKey").textContent = key;
-        } else {
-          document.getElementById("syncKey").textContent = "Not set";
-        }
-      }
-      /* =========================================================
- SECTION 11 — CLOUD SYNC LOGIC
- ---------------------------------------------------------
- WHY: Enables two-way sync between local archive and cloud
-      Supabase DB using UUID key. Ensures cloud entry is
-      created if it doesn't exist.
- ========================================================= */
+        persist();
+        bindEvents();
+        renderAll();
+        setView('editor');
+    }
 
-      const SUPABASE_URL = "https://prqmlvddmiqcpmtrypwl.supabase.co";
-      const SUPABASE_ANON_KEY =
-        "sb_publishable_RThCs13pRNmfs-9SK-rQjg_r4487GtL";
-      const TABLE_NAME = "SyncedUserData";
-
-      const supabase = window.supabase.createClient(
-        SUPABASE_URL,
-        SUPABASE_ANON_KEY
-      );
-
-      // Automatically sync every minute
-      setInterval(syncToCloud, 60 * 1000);
-
-      async function syncToCloud() {
-        const syncKey = localStorage.getItem("syncKey");
-        if (!syncKey) {
-          console.warn("Sync key not set. Skipping cloud sync.");
-          return;
-        }
-
-        const localArchive = getArchive();
-        const archiveMap = new Map(localArchive.map((item) => [item.id, item]));
-
-        try {
-          // Step 1: Fetch remote data
-          const { data: remoteRow, error: fetchError } = await supabase
-            .from(TABLE_NAME)
-            .select("data")
-            .eq("id", syncKey)
-            .maybeSingle();
-
-          if (fetchError) {
-            console.error("Supabase fetch error:", fetchError.message);
-            return;
-          }
-
-          const remoteArchive = remoteRow?.data || [];
-          const remoteMap = new Map(
-            remoteArchive.map((item) => [item.id, item])
-          );
-
-          let updatedLocal = false;
-          let updatedRemote = false;
-
-          // Step 2: Pull cloud → local
-          for (const [id, remoteItem] of remoteMap.entries()) {
-            const localItem = archiveMap.get(id);
-            if (!localItem) {
-              localArchive.push(remoteItem);
-              updatedLocal = true;
-            } else if (new Date(remoteItem.date) > new Date(localItem.date)) {
-              const index = localArchive.findIndex((item) => item.id === id);
-              localArchive[index] = remoteItem;
-              updatedLocal = true;
-            }
-          }
-
-          // Step 3: Push local → cloud
-          for (const [id, localItem] of archiveMap.entries()) {
-            const remoteItem = remoteMap.get(id);
-            if (!remoteItem) {
-              remoteArchive.push(localItem);
-              updatedRemote = true;
-            } else if (new Date(localItem.date) > new Date(remoteItem.date)) {
-              const index = remoteArchive.findIndex((item) => item.id === id);
-              remoteArchive[index] = localItem;
-              updatedRemote = true;
-            }
-          }
-
-          // Step 4: Save to local if needed
-          if (updatedLocal) {
-            saveArchive(localArchive);
-            console.log("[Cloud Sync] Pulled new/updated entries from cloud.");
-          }
-
-          // Step 5: Push to cloud if needed
-          if (updatedRemote) {
-            const payload = {
-              id: syncKey,
-              data: remoteArchive,
-            };
-
-            // Check if the row already exists
-            const { data: exists, error: existsError } = await supabase
-              .from(TABLE_NAME)
-              .select("id")
-              .eq("id", syncKey)
-              .maybeSingle();
-
-            if (existsError) {
-              console.error(
-                "Supabase existence check failed:",
-                existsError.message
-              );
-              return;
-            }
-
-            let result;
-            if (!exists) {
-              result = await supabase.from(TABLE_NAME).insert(payload);
-              console.log("[Cloud Sync] Created new cloud entry.");
-            } else {
-              result = await supabase
-                .from(TABLE_NAME)
-                .update(payload)
-                .eq("id", syncKey);
-              console.log("[Cloud Sync] Updated cloud data.");
-            }
-
-            if (result.error) {
-              console.error("Supabase upsert error:", result.error.message);
-            }
-          }
-        } catch (err) {
-          console.error("[Cloud Sync] Unexpected error:", err.message);
-        }
-      }
+    init();
     </script>
-  </body>
+</body>
 </html>
