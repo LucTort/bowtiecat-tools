@@ -1,0 +1,2061 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FRench Fryrr — Remove the Frenchness.</title>
+    <style>
+      :root {
+        --ink: #1d1d1f;
+        --gray: #6e6e73;
+        --faint: #86868b;
+        --line: #e8e8ed;
+        --bg: #ffffff;
+        --soft: #f5f5f7;
+        --blue: #0066cc;
+        --blue-dark: #004d99;
+        --red: #d0342c;
+        --green: #1a7f37;
+        --radius: 20px;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI",
+          Roboto, Helvetica, Arial, sans-serif;
+        color: var(--ink);
+        background: var(--bg);
+        -webkit-font-smoothing: antialiased;
+        line-height: 1.5;
+      }
+      ::selection {
+        background: #cfe4ff;
+      }
+
+      /* ---------- Nav ---------- */
+      nav {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        backdrop-filter: blur(20px);
+        background: rgba(255, 255, 255, 0.82);
+        border-bottom: 1px solid var(--line);
+      }
+      .nav-inner {
+        max-width: 1040px;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 24px;
+      }
+      .wordmark {
+        font-weight: 700;
+        font-size: 19px;
+        letter-spacing: -0.02em;
+        text-decoration: none;
+        color: var(--ink);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .flagchip {
+        display: inline-flex;
+        height: 14px;
+        border-radius: 3px;
+        overflow: hidden;
+        border: 1px solid var(--line);
+      }
+      .flagchip span {
+        width: 7px;
+        height: 100%;
+      }
+      .nav-links {
+        display: flex;
+        gap: 26px;
+        align-items: center;
+      }
+      .nav-links a {
+        color: var(--gray);
+        text-decoration: none;
+        font-size: 14px;
+        transition: color 0.15s;
+      }
+      .nav-links a:hover {
+        color: var(--ink);
+      }
+      .btn {
+        display: inline-block;
+        border: none;
+        cursor: pointer;
+        text-decoration: none;
+        background: var(--blue);
+        color: #fff;
+        font-size: 15px;
+        font-weight: 500;
+        padding: 10px 22px;
+        border-radius: 980px;
+        transition:
+          background 0.15s,
+          transform 0.1s;
+        font-family: inherit;
+      }
+      .btn:hover {
+        background: var(--blue-dark);
+      }
+      .btn:active {
+        transform: scale(0.97);
+      }
+      .btn.ghost {
+        background: transparent;
+        color: var(--blue);
+        border: 1px solid var(--blue);
+      }
+      .btn.ghost:hover {
+        background: var(--blue);
+        color: #fff;
+      }
+      .btn:focus-visible,
+      button:focus-visible,
+      a:focus-visible,
+      input:focus-visible,
+      textarea:focus-visible {
+        outline: 2px solid var(--blue);
+        outline-offset: 3px;
+      }
+
+      /* ---------- Hero ---------- */
+      .hero {
+        max-width: 880px;
+        margin: 0 auto;
+        text-align: center;
+        padding: 110px 24px 70px;
+      }
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        color: var(--gray);
+        border: 1px solid var(--line);
+        border-radius: 980px;
+        padding: 6px 16px;
+        margin-bottom: 28px;
+        background: var(--soft);
+      }
+      h1 {
+        font-size: clamp(42px, 7vw, 76px);
+        line-height: 1.05;
+        letter-spacing: -0.025em;
+        font-weight: 700;
+      }
+      h1 .accent {
+        color: var(--blue);
+      }
+      .hero .sub {
+        font-size: clamp(18px, 2.4vw, 23px);
+        color: var(--gray);
+        max-width: 620px;
+        margin: 26px auto 8px;
+        font-weight: 400;
+      }
+      .pronounce {
+        font-size: 13px;
+        color: var(--faint);
+        margin-top: 6px;
+      }
+      .hero-ctas {
+        margin-top: 36px;
+        display: flex;
+        gap: 14px;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      .stats {
+        display: flex;
+        justify-content: center;
+        gap: 56px;
+        flex-wrap: wrap;
+        margin-top: 70px;
+      }
+      .stat b {
+        display: block;
+        font-size: 34px;
+        letter-spacing: -0.02em;
+        font-weight: 700;
+      }
+      .stat span {
+        font-size: 14px;
+        color: var(--gray);
+      }
+
+      /* ---------- Sections ---------- */
+      section {
+        max-width: 1040px;
+        margin: 0 auto;
+        padding: 90px 24px;
+      }
+      section + section {
+        border-top: 1px solid var(--line);
+      }
+      .kicker {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--blue);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 14px;
+      }
+      h2 {
+        font-size: clamp(30px, 4.4vw, 46px);
+        letter-spacing: -0.02em;
+        font-weight: 700;
+        line-height: 1.1;
+      }
+      .lede {
+        font-size: 18px;
+        color: var(--gray);
+        max-width: 600px;
+        margin-top: 14px;
+      }
+      .center {
+        text-align: center;
+      }
+      .center .lede {
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      /* ---------- Image converter ---------- */
+      .tabs {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        margin: 38px 0 24px;
+        flex-wrap: wrap;
+      }
+      .tab {
+        border: 1px solid var(--line);
+        background: #fff;
+        color: var(--gray);
+        padding: 9px 20px;
+        border-radius: 980px;
+        font-size: 14px;
+        cursor: pointer;
+        font-family: inherit;
+        transition: all 0.15s;
+      }
+      .tab:hover {
+        border-color: var(--gray);
+        color: var(--ink);
+      }
+      .tab.active {
+        background: var(--ink);
+        color: #fff;
+        border-color: var(--ink);
+      }
+      .compare-wrap {
+        max-width: 760px;
+        margin: 0 auto;
+      }
+      .compare {
+        position: relative;
+        border-radius: var(--radius);
+        overflow: hidden;
+        border: 1px solid var(--line);
+        user-select: none;
+        touch-action: none;
+        aspect-ratio: 16/9;
+        background: var(--soft);
+        cursor: ew-resize;
+      }
+      .compare svg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+      .layer-after {
+        clip-path: inset(0 0 0 50%);
+      }
+      .divider {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 50%;
+        width: 2px;
+        background: #fff;
+        box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08);
+        transform: translateX(-1px);
+      }
+      .divider .knob {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #fff;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        color: var(--ink);
+        letter-spacing: -1px;
+      }
+      .tag {
+        position: absolute;
+        top: 14px;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 5px 12px;
+        border-radius: 980px;
+        color: #fff;
+      }
+      .tag.before {
+        left: 14px;
+        background: rgba(29, 29, 31, 0.75);
+      }
+      .tag.after {
+        right: 14px;
+        background: var(--blue);
+      }
+      .compare-caption {
+        display: flex;
+        justify-content: space-between;
+        color: var(--faint);
+        font-size: 13px;
+        margin-top: 12px;
+      }
+      .defrench-row {
+        text-align: center;
+        margin-top: 26px;
+      }
+      .status-line {
+        margin-top: 14px;
+        font-size: 14px;
+        color: var(--gray);
+        min-height: 21px;
+        font-variant-numeric: tabular-nums;
+      }
+
+      /* ---------- Text converter ---------- */
+      .converter {
+        max-width: 720px;
+        margin: 40px auto 0;
+        background: var(--soft);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        padding: 26px;
+      }
+      .selected-phrase {
+        width: 100%;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 16px;
+        font-size: 17px;
+        background: #fff;
+        color: var(--ink);
+        min-height: 56px;
+      }
+      .selected-phrase.empty {
+        color: var(--faint);
+      }
+      .chip.selected {
+        background: var(--ink);
+        color: #fff;
+        border-color: var(--ink);
+      }
+      .chip.selected:hover {
+        border-color: var(--ink);
+        color: #fff;
+      }
+      .input-note {
+        font-size: 12px;
+        color: var(--faint);
+        margin-top: 12px;
+      }
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 14px 0 18px;
+      }
+      .chip {
+        font-size: 13px;
+        border: 1px solid var(--line);
+        background: #fff;
+        color: var(--gray);
+        border-radius: 980px;
+        padding: 6px 14px;
+        cursor: pointer;
+        font-family: inherit;
+        transition: all 0.15s;
+      }
+      .chip:hover {
+        border-color: var(--blue);
+        color: var(--blue);
+      }
+      .result {
+        margin-top: 20px;
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 18px;
+        display: none;
+      }
+      .result.show {
+        display: block;
+      }
+      .result .label {
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--green);
+        margin-bottom: 8px;
+      }
+      .result .output {
+        font-size: 17px;
+        line-height: 1.5;
+      }
+      .meter {
+        margin-top: 16px;
+      }
+      .meter .meter-label {
+        display: flex;
+        justify-content: space-between;
+        font-size: 12px;
+        color: var(--faint);
+        margin-bottom: 6px;
+      }
+      .meter .bar {
+        height: 6px;
+        border-radius: 980px;
+        background: var(--line);
+        overflow: hidden;
+      }
+      .meter .fill {
+        height: 100%;
+        width: 0;
+        background: linear-gradient(90deg, var(--red), #e8843c);
+        border-radius: 980px;
+        transition: width 1s ease;
+      }
+
+      /* ---------- Cards (movies/songs) ---------- */
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+        gap: 18px;
+        margin-top: 42px;
+      }
+      .card {
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        padding: 26px;
+        background: #fff;
+        transition:
+          transform 0.2s,
+          box-shadow 0.2s;
+      }
+      .card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.07);
+      }
+      .conv-card .from {
+        color: var(--faint);
+        font-size: 14px;
+        font-style: italic;
+      }
+      .conv-card .arrow {
+        color: var(--blue);
+        font-size: 20px;
+        margin: 10px 0;
+      }
+      .conv-card .to {
+        font-weight: 700;
+        font-size: 19px;
+        letter-spacing: -0.01em;
+        line-height: 1.25;
+      }
+      .conv-card .note {
+        font-size: 13px;
+        color: var(--gray);
+        margin-top: 10px;
+      }
+
+      /* ---------- Testimonials ---------- */
+      .quote-card p {
+        font-size: 16px;
+        line-height: 1.55;
+      }
+      .quote-card .who {
+        margin-top: 16px;
+        font-size: 13px;
+        color: var(--faint);
+      }
+      .quote-card .who b {
+        color: var(--ink);
+        font-weight: 600;
+      }
+      .starrow {
+        color: #f5a623;
+        font-size: 13px;
+        letter-spacing: 2px;
+        margin-bottom: 12px;
+      }
+
+      /* ---------- Pricing ---------- */
+      .price-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 18px;
+        margin-top: 42px;
+        align-items: stretch;
+      }
+      .price-card {
+        display: flex;
+        flex-direction: column;
+      }
+      .price-card.popular {
+        border: 2px solid var(--blue);
+        position: relative;
+      }
+      .popular-pill {
+        position: absolute;
+        top: -13px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--blue);
+        color: #fff;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 5px 14px;
+        border-radius: 980px;
+        white-space: nowrap;
+      }
+      .plan-name {
+        font-weight: 700;
+        font-size: 20px;
+        letter-spacing: -0.01em;
+      }
+      .plan-name s {
+        color: var(--faint);
+        font-weight: 400;
+        margin-right: 6px;
+      }
+      .plan-sub {
+        font-size: 13px;
+        color: var(--faint);
+        margin-top: 2px;
+      }
+      .price {
+        font-size: 40px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        margin: 18px 0 2px;
+      }
+      .price small {
+        font-size: 15px;
+        font-weight: 400;
+        color: var(--gray);
+      }
+      .price-note {
+        font-size: 12px;
+        color: var(--faint);
+        margin-bottom: 18px;
+      }
+      .features {
+        list-style: none;
+        margin: 0 0 26px;
+        flex: 1;
+      }
+      .features li {
+        font-size: 14px;
+        color: var(--gray);
+        padding: 7px 0;
+        border-bottom: 1px solid var(--soft);
+        display: flex;
+        gap: 9px;
+      }
+      .features li::before {
+        content: "✓";
+        color: var(--green);
+        font-weight: 700;
+      }
+      .features li.no::before {
+        content: "✕";
+        color: var(--faint);
+      }
+      .price-card .btn {
+        width: 100%;
+        text-align: center;
+      }
+
+      /* ---------- Team ---------- */
+      .team-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 18px;
+        margin-top: 42px;
+      }
+      .avatar {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 20px;
+        color: #fff;
+        margin-bottom: 16px;
+        letter-spacing: -0.02em;
+      }
+      .team-card h3 {
+        font-size: 17px;
+        letter-spacing: -0.01em;
+      }
+      .team-card .role {
+        font-size: 13px;
+        color: var(--blue);
+        font-weight: 500;
+        margin: 2px 0 10px;
+      }
+      .team-card p {
+        font-size: 14px;
+        color: var(--gray);
+      }
+      .investors {
+        margin-top: 46px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        padding: 34px;
+        text-align: center;
+        background: var(--soft);
+      }
+      .investors .inv-label {
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--faint);
+        margin-bottom: 18px;
+      }
+      .inv-row {
+        display: flex;
+        gap: 34px;
+        justify-content: center;
+        flex-wrap: wrap;
+        font-weight: 700;
+        font-size: 17px;
+        color: #b7b7bd;
+        letter-spacing: -0.01em;
+      }
+      .investors .inv-note {
+        font-size: 13px;
+        color: var(--faint);
+        margin-top: 20px;
+        font-style: italic;
+      }
+
+      /* ---------- FAQ ---------- */
+      .faq {
+        max-width: 720px;
+        margin: 42px auto 0;
+      }
+      .faq-item {
+        border-bottom: 1px solid var(--line);
+      }
+      .faq-q {
+        width: 100%;
+        background: none;
+        border: none;
+        text-align: left;
+        cursor: pointer;
+        font-family: inherit;
+        font-size: 17px;
+        font-weight: 600;
+        color: var(--ink);
+        padding: 22px 40px 22px 0;
+        position: relative;
+        letter-spacing: -0.01em;
+      }
+      .faq-q::after {
+        content: "+";
+        position: absolute;
+        right: 4px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 24px;
+        font-weight: 300;
+        color: var(--faint);
+        transition: transform 0.2s;
+      }
+      .faq-item.open .faq-q::after {
+        transform: translateY(-50%) rotate(45deg);
+      }
+      .faq-a {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.25s ease;
+      }
+      .faq-a p {
+        color: var(--gray);
+        font-size: 15px;
+        padding: 0 0 22px;
+        max-width: 640px;
+      }
+
+      /* ---------- CTA + Footer ---------- */
+      .final-cta {
+        text-align: center;
+        padding: 110px 24px;
+      }
+      footer {
+        border-top: 1px solid var(--line);
+        background: var(--soft);
+      }
+      .foot-inner {
+        max-width: 1040px;
+        margin: 0 auto;
+        padding: 44px 24px;
+        font-size: 12px;
+        color: var(--faint);
+        line-height: 1.8;
+      }
+      .foot-inner b {
+        color: var(--gray);
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          transition: none !important;
+          animation: none !important;
+        }
+        html {
+          scroll-behavior: auto;
+        }
+      }
+      @media (max-width: 640px) {
+        .nav-links a:not(.btn) {
+          display: none;
+        }
+        .stats {
+          gap: 32px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <nav>
+      <div class="nav-inner">
+        <a class="wordmark" href="#top">
+          FRench Fryrr
+          <span class="flagchip" title="Before / After">
+            <span style="background: #0055a4"></span
+            ><span style="background: #fff"></span
+            ><span style="background: #ef4135"></span>
+          </span>
+        </a>
+        <div class="nav-links">
+          <a href="#image">Images</a>
+          <a href="#text">Text</a>
+          <a href="#media">Movies &amp; Songs</a>
+          <a href="#pricing">Pricing</a>
+          <a href="#future">The Future</a>
+          <a href="#faq">FAQ</a>
+          <a class="btn" href="#image">De-French now</a>
+        </div>
+      </div>
+    </nav>
+
+    <header class="hero" id="top">
+      <div class="eyebrow">
+        🦅 New: real-time de-Frenching, running 100% on your computer
+      </div>
+      <h1>
+        The world has had to interact with the French
+        <span class="accent">for far too long.</span>
+      </h1>
+      <p class="sub">
+        FRench Fryrr is a real-time application that runs right on your
+        computer, detecting and removing Frenchness from any photo, sentence,
+        film, or song — live, as it happens. Instantly. Politely. Forever.
+      </p>
+      <p class="pronounce">FRench Fryrr™ (pronounced "French Fryer")</p>
+      <div class="hero-ctas">
+        <a class="btn" href="#image">Try the demo</a>
+        <a class="btn ghost" href="#pricing">See pricing</a>
+      </div>
+      <div class="stats">
+        <div class="stat"><b>0</b><span>berets remaining</span></div>
+        <div class="stat"><b>100%</b><span>less ennui</span></div>
+        <div class="stat"><b>1,776</b><span>satisfied customers</span></div>
+        <div class="stat"><b>35 → 80</b><span>hour work week</span></div>
+        <div class="stat"><b>0.4ms</b><span>per beret, on-device</span></div>
+      </div>
+    </header>
+
+    <!-- ============ IMAGE CONVERTER ============ -->
+    <section id="image" class="center">
+      <div class="kicker">Image conversion</div>
+      <h2>See the Frenchness leave.</h2>
+      <p class="lede">
+        Runs live on your machine at 60 de-Frenchings per second. On-device
+        processing means your Frenchness never leaves your computer. Drag the
+        slider, or press the button and let the De-Frenching Engine™ handle it.
+        Results are final.
+      </p>
+
+      <div class="tabs" role="tablist">
+        <button
+          class="tab active"
+          data-scene="tower"
+          role="tab"
+          aria-selected="true"
+        >
+          Eiffel Tower
+        </button>
+        <button class="tab" data-scene="wine" role="tab" aria-selected="false">
+          Glass of Wine
+        </button>
+        <button
+          class="tab"
+          data-scene="baguette"
+          role="tab"
+          aria-selected="false"
+        >
+          Baguette
+        </button>
+      </div>
+
+      <div class="compare-wrap">
+        <div
+          class="compare"
+          id="compare"
+          aria-label="Before and after comparison slider"
+        >
+          <!-- BEFORE: Eiffel Tower -->
+          <svg
+            class="layer-before scene-tower"
+            viewBox="0 0 800 450"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+          >
+            <rect width="800" height="450" fill="#EAF2FB" />
+            <circle cx="660" cy="80" r="34" fill="#FFE9A8" />
+            <g fill="#ffffff" opacity="0.9">
+              <ellipse cx="150" cy="90" rx="52" ry="16" />
+              <ellipse cx="190" cy="80" rx="38" ry="13" />
+              <ellipse cx="560" cy="140" rx="46" ry="14" />
+            </g>
+            <rect y="380" width="800" height="70" fill="#CBE3C4" />
+            <g fill="#8FBF7F">
+              <circle cx="120" cy="372" r="26" />
+              <rect x="115" y="380" width="10" height="24" fill="#8a6b4f" />
+              <circle cx="690" cy="368" r="30" />
+              <rect x="685" y="380" width="10" height="26" fill="#8a6b4f" />
+            </g>
+            <!-- Tower: filled silhouette with curved legs + arch cutout -->
+            <path
+              fill="#5b4a3f"
+              d="M296 385
+          C330 320 358 268 372 210
+          C380 168 386 120 388 78
+          L412 78
+          C414 120 420 168 428 210
+          C442 268 470 320 504 385
+          L452 385
+          C440 348 424 322 400 316
+          C376 322 360 348 348 385
+          Z"
+            />
+            <!-- Arch rim -->
+            <path
+              d="M348 385 C360 348 376 322 400 316 C424 322 440 348 452 385"
+              fill="none"
+              stroke="#4a3b31"
+              stroke-width="6"
+            />
+            <!-- Lattice hints (background-colored strokes over the silhouette) -->
+            <g stroke="#EAF2FB" stroke-width="3" fill="none" opacity="0.85">
+              <path d="M320 375 L358 322 M358 375 L320 322" />
+              <path d="M480 375 L442 322 M442 375 L480 322" />
+              <path d="M368 288 L432 218 M432 288 L368 218 M366 254 L434 254" />
+              <path d="M386 198 L414 106 M414 198 L386 106 M384 152 L416 152" />
+            </g>
+            <!-- First platform, second platform, top deck -->
+            <rect
+              x="322"
+              y="292"
+              width="156"
+              height="13"
+              rx="3"
+              fill="#4a3b31"
+            />
+            <rect
+              x="362"
+              y="203"
+              width="76"
+              height="11"
+              rx="3"
+              fill="#4a3b31"
+            />
+            <rect x="380" y="92" width="40" height="9" rx="3" fill="#4a3b31" />
+            <!-- Antenna -->
+            <rect x="397" y="42" width="6" height="38" fill="#5b4a3f" />
+            <circle cx="400" cy="38" r="4" fill="#5b4a3f" />
+            <text
+              x="400"
+              y="432"
+              text-anchor="middle"
+              font-size="16"
+              fill="#5b4a3f"
+              font-style="italic"
+              font-family="Georgia,serif"
+            >
+              La Tour Eiffel, mon amour
+            </text>
+          </svg>
+
+          <!-- AFTER: Power pylon -->
+          <svg
+            class="layer-after scene-tower"
+            viewBox="0 0 800 450"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+          >
+            <rect width="800" height="450" fill="#DFEAF4" />
+            <circle cx="660" cy="80" r="34" fill="#FFF3C4" />
+            <rect y="380" width="800" height="70" fill="#D9CFA8" />
+            <!-- catenary wires -->
+            <g stroke="#6a6a70" stroke-width="3" fill="none">
+              <path d="M0 150 Q200 190 335 168" />
+              <path d="M465 168 Q600 190 800 150" />
+              <path d="M0 205 Q200 245 335 218" />
+              <path d="M465 218 Q600 245 800 205" />
+            </g>
+            <!-- pylon -->
+            <g
+              stroke="#4a4a50"
+              stroke-width="7"
+              fill="none"
+              stroke-linecap="round"
+            >
+              <path d="M372 385 L392 90 M428 385 L408 90" />
+              <path d="M335 168 L465 168 M335 218 L465 218" />
+              <path d="M392 90 L408 90" />
+            </g>
+            <g stroke="#4a4a50" stroke-width="3" fill="none" opacity="0.7">
+              <path
+                d="M377 340 L423 300 M423 340 L377 300 M380 300 L420 260 M420 300 L380 260 M383 260 L417 225 M417 260 L383 225 M386 218 L414 190 M414 218 L386 190 M389 150 L411 125 M411 150 L389 125"
+              />
+            </g>
+            <g fill="#4a4a50">
+              <rect x="333" y="168" width="6" height="16" />
+              <rect x="461" y="168" width="6" height="16" />
+              <rect x="333" y="218" width="6" height="16" />
+              <rect x="461" y="218" width="6" height="16" />
+            </g>
+            <text
+              x="400"
+              y="432"
+              text-anchor="middle"
+              font-size="16"
+              fill="#4a4a50"
+              font-family="Arial,sans-serif"
+              font-weight="bold"
+            >
+              TRANSMISSION STRUCTURE #4,512
+            </text>
+          </svg>
+
+          <!-- BEFORE: Wine -->
+          <svg
+            class="layer-before scene-wine"
+            viewBox="0 0 800 450"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+            style="display: none"
+          >
+            <rect width="800" height="450" fill="#FBF3E7" />
+            <rect y="330" width="800" height="120" fill="#E7D7BE" />
+            <!-- wine glass -->
+            <g>
+              <path
+                d="M340 120 L460 120 Q455 230 400 240 Q345 230 340 120 Z"
+                fill="#F4E9E9"
+                stroke="#b8a79b"
+                stroke-width="4"
+              />
+              <path
+                d="M344 138 L456 138 Q451 224 400 234 Q349 224 344 138 Z"
+                fill="#8E2431"
+              />
+              <rect x="395" y="240" width="10" height="80" fill="#b8a79b" />
+              <ellipse cx="400" cy="326" rx="52" ry="10" fill="#b8a79b" />
+            </g>
+            <!-- cheese wedge -->
+            <g>
+              <path
+                d="M520 330 L640 330 L640 280 Z"
+                fill="#F2C94C"
+                stroke="#D9A62E"
+                stroke-width="3"
+              />
+              <circle cx="612" cy="316" r="7" fill="#D9A62E" />
+              <circle cx="588" cy="323" r="5" fill="#D9A62E" />
+            </g>
+            <!-- grapes -->
+            <g fill="#6B3FA0">
+              <circle cx="230" cy="315" r="12" />
+              <circle cx="255" cy="312" r="12" />
+              <circle cx="242" cy="295" r="12" />
+              <circle cx="218" cy="298" r="12" />
+              <circle cx="240" cy="330" r="12" />
+              <circle cx="265" cy="328" r="12" />
+            </g>
+            <path
+              d="M242 285 Q245 270 258 264"
+              stroke="#4c7a3d"
+              stroke-width="4"
+              fill="none"
+            />
+            <text
+              x="400"
+              y="410"
+              text-anchor="middle"
+              font-size="16"
+              fill="#8a6b4f"
+              font-style="italic"
+              font-family="Georgia,serif"
+            >
+              Un petit Bordeaux, 1998
+            </text>
+          </svg>
+
+          <!-- AFTER: Beer -->
+          <svg
+            class="layer-after scene-wine"
+            viewBox="0 0 800 450"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+            style="display: none"
+          >
+            <rect width="800" height="450" fill="#F2F6F9" />
+            <rect y="330" width="800" height="120" fill="#C9CDD3" />
+            <!-- beer mug -->
+            <g>
+              <rect
+                x="340"
+                y="130"
+                width="120"
+                height="196"
+                rx="12"
+                fill="#F6B93B"
+                stroke="#C98A1B"
+                stroke-width="4"
+              />
+              <rect
+                x="352"
+                y="122"
+                width="96"
+                height="30"
+                rx="14"
+                fill="#FFF6E3"
+              />
+              <circle cx="360" cy="118" r="14" fill="#FFF6E3" />
+              <circle cx="396" cy="110" r="17" fill="#FFF6E3" />
+              <circle cx="434" cy="117" r="14" fill="#FFF6E3" />
+              <path
+                d="M460 170 Q510 170 510 220 Q510 270 460 270"
+                stroke="#C98A1B"
+                stroke-width="14"
+                fill="none"
+              />
+              <g stroke="#FFDD8A" stroke-width="8" stroke-linecap="round">
+                <path
+                  d="M362 165 L362 300 M400 165 L400 300 M438 165 L438 300"
+                />
+              </g>
+            </g>
+            <!-- pretzel-ish snack bowl -->
+            <g>
+              <path
+                d="M560 330 Q610 360 660 330 L648 330 Q610 348 572 330 Z"
+                fill="#B0413E"
+              />
+              <circle cx="590" cy="322" r="9" fill="#C98A1B" />
+              <circle cx="612" cy="318" r="9" fill="#C98A1B" />
+              <circle cx="632" cy="323" r="9" fill="#C98A1B" />
+            </g>
+            <!-- foam drip -->
+            <path
+              d="M352 150 q6 14 0 24"
+              stroke="#FFF6E3"
+              stroke-width="8"
+              fill="none"
+              stroke-linecap="round"
+            />
+            <text
+              x="400"
+              y="410"
+              text-anchor="middle"
+              font-size="16"
+              fill="#4a4a50"
+              font-family="Arial,sans-serif"
+              font-weight="bold"
+            >
+              DOMESTIC. COLD. 30-PACK.
+            </text>
+          </svg>
+
+          <!-- BEFORE: Baguette -->
+          <svg
+            class="layer-before scene-baguette"
+            viewBox="0 0 800 450"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+            style="display: none"
+          >
+            <rect width="800" height="450" fill="#F7EFE3" />
+            <!-- checked cloth -->
+            <rect
+              y="300"
+              width="800"
+              height="150"
+              fill="#E8474B"
+              opacity="0.9"
+            />
+            <g fill="#fff" opacity="0.5">
+              <rect x="0" y="300" width="800" height="10" />
+              <rect x="0" y="340" width="800" height="10" />
+              <rect x="0" y="380" width="800" height="10" />
+              <rect x="0" y="420" width="800" height="10" />
+              <rect x="60" y="300" width="10" height="150" />
+              <rect x="160" y="300" width="10" height="150" />
+              <rect x="260" y="300" width="10" height="150" />
+              <rect x="360" y="300" width="10" height="150" />
+              <rect x="460" y="300" width="10" height="150" />
+              <rect x="560" y="300" width="10" height="150" />
+              <rect x="660" y="300" width="10" height="150" />
+              <rect x="760" y="300" width="10" height="150" />
+            </g>
+            <!-- baguette -->
+            <g transform="rotate(-12 400 240)">
+              <ellipse
+                cx="400"
+                cy="240"
+                rx="210"
+                ry="46"
+                fill="#E0A85C"
+                stroke="#B97F35"
+                stroke-width="4"
+              />
+              <g
+                stroke="#B97F35"
+                stroke-width="6"
+                stroke-linecap="round"
+                fill="none"
+              >
+                <path
+                  d="M280 226 q22 16 44 22 M340 218 q22 16 44 22 M400 214 q22 16 44 22 M460 218 q22 16 44 22"
+                />
+              </g>
+            </g>
+            <text
+              x="400"
+              y="410"
+              text-anchor="middle"
+              font-size="16"
+              fill="#7a3f3f"
+              font-style="italic"
+              font-family="Georgia,serif"
+            >
+              Fraîche de la boulangerie
+            </text>
+          </svg>
+
+          <!-- AFTER: Hot dog -->
+          <svg
+            class="layer-after scene-baguette"
+            viewBox="0 0 800 450"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+            style="display: none"
+          >
+            <rect width="800" height="450" fill="#EFF4F8" />
+            <!-- paper tray -->
+            <path d="M180 330 L620 330 L580 410 L220 410 Z" fill="#E4372E" />
+            <path d="M180 330 L620 330 L612 348 L188 348 Z" fill="#C22B24" />
+            <!-- hot dog -->
+            <g transform="rotate(-6 400 250)">
+              <ellipse
+                cx="400"
+                cy="268"
+                rx="190"
+                ry="46"
+                fill="#E8B96B"
+                stroke="#C08A3E"
+                stroke-width="4"
+              />
+              <ellipse
+                cx="400"
+                cy="248"
+                rx="168"
+                ry="34"
+                fill="#C1553B"
+                stroke="#9C3E28"
+                stroke-width="4"
+              />
+              <path
+                d="M255 250 Q285 232 315 250 Q345 268 375 250 Q405 232 435 250 Q465 268 495 250 Q520 236 545 248"
+                stroke="#F2C230"
+                stroke-width="10"
+                fill="none"
+                stroke-linecap="round"
+              />
+            </g>
+            <text
+              x="400"
+              y="440"
+              text-anchor="middle"
+              font-size="16"
+              fill="#4a4a50"
+              font-family="Arial,sans-serif"
+              font-weight="bold"
+            >
+              FOOTLONG. FREEDOM INCLUDED.
+            </text>
+          </svg>
+
+          <div class="divider" id="divider"><div class="knob">⟨⟩</div></div>
+          <span class="tag before">French</span>
+          <span class="tag after">Fixed</span>
+        </div>
+        <div class="compare-caption">
+          <span id="cap-before">La Tour Eiffel</span
+          ><span id="cap-after">Transmission Structure #4,512</span>
+        </div>
+        <div class="defrench-row">
+          <button class="btn" id="autoDefrench">✨ De-French it for me</button>
+          <div class="status-line" id="imgStatus"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ TEXT CONVERTER ============ -->
+    <section id="text" class="center">
+      <div class="kicker">Text conversion</div>
+      <h2>Select French. Receive freedom.</h2>
+      <p class="lede">
+        Our engine translates French language, French phrases, and — most
+        importantly — French thinking.
+      </p>
+
+      <div class="converter">
+        <div
+          class="selected-phrase empty"
+          id="selectedPhrase"
+          aria-live="polite"
+        >
+          Select a certified pre-French phrase below
+        </div>
+        <div class="chips" id="chips"></div>
+        <button class="btn" id="convertBtn">De-French this text</button>
+        <button class="btn ghost" id="randomBtn" style="margin-left: 10px">
+          🎲 Surprise me
+        </button>
+        <p class="input-note">
+          Custom text input has been disabled. Free-form writing was found to be
+          too French: unpredictable, expressive, and resistant to authority.
+        </p>
+        <div class="status-line" id="txtStatus"></div>
+        <div class="result" id="result">
+          <div class="label">✓ Frenchness removed</div>
+          <div class="output" id="output"></div>
+          <div class="meter">
+            <div class="meter-label">
+              <span>Frenchness detected</span><span id="meterPct">0%</span>
+            </div>
+            <div class="bar"><div class="fill" id="meterFill"></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ MOVIES & SONGS ============ -->
+    <!-- <section id="media">
+      <div class="center">
+        <div class="kicker">Media pipeline</div>
+        <h2>Cinema, corrected. Music, mended.</h2>
+        <p class="lede">
+          Every French film becomes an American action movie. Every French song
+          becomes country. It's not a bug. It's the entire product.
+        </p>
+      </div>
+      <div class="grid">
+        <div class="card conv-card">
+          <div class="from">Amélie (2001)</div>
+          <div class="arrow">↓</div>
+          <div class="to">AMY: MAXIMUM WHIMSY</div>
+          <div class="note">
+            Rated R for explosions. The garden gnome drives a tank now.
+          </div>
+        </div>
+        <div class="card conv-card">
+          <div class="from">À bout de souffle — "Breathless" (1960)</div>
+          <div class="arrow">↓</div>
+          <div class="to">OUT OF BREATH: CARDIO COP</div>
+          <div class="note">He plays by one rule: leg day is every day.</div>
+        </div>
+        <div class="card conv-card">
+          <div class="from">Les Intouchables (2011)</div>
+          <div class="arrow">↓</div>
+          <div class="to">THE UNTOUCHABLE TRUCK</div>
+          <div class="note">
+            A heartwarming friendship between a man and his F-350.
+          </div>
+        </div>
+        <div class="card conv-card">
+          <div class="from">🎵 La Vie en rose — Édith Piaf</div>
+          <div class="arrow">↓</div>
+          <div class="to">Life Is Pink (And So Is My Truck)</div>
+          <div class="note">
+            Now featuring a steel guitar and a verse about a dog.
+          </div>
+        </div>
+        <div class="card conv-card">
+          <div class="from">🎵 Non, je ne regrette rien</div>
+          <div class="arrow">↓</div>
+          <div class="to">No Regerts</div>
+          <div class="note">Title preserved exactly as tattooed.</div>
+        </div>
+        <div class="card conv-card">
+          <div class="from">🎵 Les Champs-Élysées</div>
+          <div class="arrow">↓</div>
+          <div class="to">Walkin' Down Route 66</div>
+          <div class="note">Same optimism, 4,000% more denim.</div>
+        </div>
+      </div>
+    </section> -->
+
+    <!-- ============ TESTIMONIALS ============ -->
+    <section>
+      <div class="center">
+        <div class="kicker">Testimonials</div>
+        <h2>People love it. Loudly.</h2>
+      </div>
+      <div class="grid">
+        <div class="card quote-card">
+          <div class="starrow">★★★★★</div>
+          <p>
+            "I uploaded photos of my honeymoon in Paris. It's now a business
+            trip to Cleveland. My wife and I have never been more aligned on
+            quarterly goals."
+          </p>
+          <div class="who"><b>Greg P.</b> — Regional Manager, Ohio</div>
+        </div>
+        <div class="card quote-card">
+          <div class="starrow">★★★★★</div>
+          <p>
+            "My wine cellar is now a garage fridge. My cheese cave is now a
+            drawer of individually wrapped slices. I feel nothing, and it's
+            wonderful."
+          </p>
+          <div class="who"><b>Dana W.</b> — Homeowner, Texas</div>
+        </div>
+        <div class="card quote-card">
+          <div class="starrow">★★★★★</div>
+          <p>
+            "I ran all seven volumes of Proust through it. The output was one
+            sentence: 'Cookie good. Made me think.' Saved me a decade."
+          </p>
+          <div class="who">
+            <b>Prof. M. Halloway</b> — Formerly of the Comparative Literature
+            Dept.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PRICING ============ -->
+    <section id="pricing">
+      <div class="center">
+        <div class="kicker">Pricing</div>
+        <h2>Freedom isn't free. It's $17.89/mo.</h2>
+        <p class="lede">
+          Cancel anytime. Unlike the French, we won't make it weird.
+        </p>
+      </div>
+      <div class="price-grid">
+        <div class="card price-card">
+          <div class="plan-name"><s>Croissant</s> Crescent Donut</div>
+          <div class="plan-sub">Plan name pending de-Frenching</div>
+          <div class="price">$0<small>/mo</small></div>
+          <div class="price-note">Free forever, like speech</div>
+          <ul class="features">
+            <li>5 de-Frenchings per month</li>
+            <li>Baguettes &amp; berets only</li>
+            <li class="no">No irony detection</li>
+            <li class="no">Ads (in French, so you'll want to upgrade)</li>
+          </ul>
+          <a class="btn ghost" href="#top">Start free</a>
+        </div>
+        <div class="card price-card popular">
+          <div class="popular-pill">Most patriotic</div>
+          <div class="plan-name">Freedom</div>
+          <div class="plan-sub">Formerly "Liberté" — we fixed it</div>
+          <div class="price">$17.89<small>/mo</small></div>
+          <div class="price-note">
+            Price commemorates a year we'd rather not discuss
+          </div>
+          <ul class="features">
+            <li>Unlimited de-Frenchings</li>
+            <li>Full phrase &amp; thinking-style conversion</li>
+            <li>Movie &amp; song pipeline access</li>
+            <li>Shrug-to-thumbs-up conversion</li>
+            <li>
+              Priority support (we answer, unlike a Parisian café in August)
+            </li>
+          </ul>
+          <a class="btn" href="#top">Get Freedom</a>
+        </div>
+        <div class="card price-card">
+          <div class="plan-name">Manifest Destiny</div>
+          <div class="plan-sub">For enterprises &amp; small nations</div>
+          <div class="price">Custom</div>
+          <div class="price-note">Contact sales. In English.</div>
+          <ul class="features">
+            <li>Bulk de-Frenching (entire regions)</li>
+            <li>Dedicated Freedom Engineer</li>
+            <li>SLA: 99.99% ennui-free uptime</li>
+            <li>On-premise deployment (the premise is America)</li>
+          </ul>
+          <a class="btn ghost" href="#top">Contact sales</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ TEAM & INVESTORS ============ -->
+    <section>
+      <div class="center">
+        <div class="kicker">Team</div>
+        <h2>Built by people with strong opinions about cheese.</h2>
+      </div>
+      <div class="team-grid">
+        <div class="card team-card">
+          <div class="avatar" style="background: #0066cc">CF</div>
+          <h3>Chad Freedom</h3>
+          <div class="role">CEO &amp; Founder</div>
+          <p>
+            Has never apologized. Founded FRench Fryrr after a croissant made
+            him feel something.
+          </p>
+        </div>
+        <div class="card team-card">
+          <div class="avatar" style="background: #1a7f37">BS</div>
+          <h3>Brooklyn Sanders</h3>
+          <div class="role">CTO</div>
+          <p>
+            Believes all cheese should be individually wrapped. Wrote the
+            De-Frenching Engine™ in a weekend, allegedly.
+          </p>
+        </div>
+        <div class="card team-card">
+          <div class="avatar" style="background: #d0342c">MK</div>
+          <h3>Madison Kowalski</h3>
+          <div class="role">Head of Growth</div>
+          <p>
+            Formerly of a company you've definitely heard of. Refers to lunch as
+            a "fuel sprint."
+          </p>
+        </div>
+        <div class="card team-card">
+          <div class="avatar" style="background: #6e6e73">JP</div>
+          <h3>Jean-Pierre D.</h3>
+          <div class="role">Quality Assurance</div>
+          <p>
+            Our control sample. Kept on-site to verify the product works. Deeply
+            unhappy, which means it does.
+          </p>
+        </div>
+      </div>
+      <div class="investors">
+        <div class="inv-label">Backed by</div>
+        <div class="inv-row">
+          <span>Série A Capital*</span>
+          <span>Bald Egle Ventures</span>
+          <span>Y? Combine Anything</span>
+          <span>Uncle Randy</span>
+        </div>
+        <div class="inv-note">
+          *$45M Series A (pronounced "Series A"). All investors once had a
+          layover at Charles de Gaulle and did not care for it.
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ THE FUTURE ============ -->
+    <section id="future">
+      <div class="center">
+        <div class="kicker">The future (pending funding)</div>
+        <h2>Fryrr Vision. De-French reality itself.</h2>
+        <p class="lede">
+          If our Series B closes, we will ship a VR headset that removes
+          Frenchness from everyday life — live, as you walk around. Expected
+          price: $3,499, or one (1) château. Until then, please enjoy this
+          rendering, which is the entire company.
+        </p>
+      </div>
+
+      <!-- Headset rendering: visor shows a live mini de-Frenching (tower → pylon) -->
+      <svg
+        viewBox="0 0 800 320"
+        xmlns="http://www.w3.org/2000/svg"
+        role="img"
+        aria-label="Concept rendering of the Fryrr Vision headset"
+        style="display: block; max-width: 560px; margin: 42px auto 0"
+      >
+        <!-- straps -->
+        <path
+          d="M252 160 C185 148 150 165 138 196"
+          stroke="#9a9aa0"
+          stroke-width="16"
+          fill="none"
+          stroke-linecap="round"
+        />
+        <path
+          d="M548 160 C615 148 650 165 662 196"
+          stroke="#9a9aa0"
+          stroke-width="16"
+          fill="none"
+          stroke-linecap="round"
+        />
+        <!-- headset body + visor -->
+        <rect x="250" y="105" width="300" height="125" rx="50" fill="#1d1d1f" />
+        <rect x="266" y="119" width="268" height="97" rx="40" fill="#2c2c30" />
+        <ellipse
+          cx="330"
+          cy="138"
+          rx="46"
+          ry="12"
+          fill="#3d3d44"
+          opacity="0.8"
+        />
+        <!-- visor content: mini before/after -->
+        <line
+          x1="400"
+          y1="128"
+          x2="400"
+          y2="208"
+          stroke="#55555c"
+          stroke-width="2"
+          stroke-dasharray="4 4"
+        />
+        <g stroke="#8a8a92" stroke-width="3" fill="none" stroke-linecap="round">
+          <path
+            d="M330 200 C338 176 344 160 348 140 M366 200 C358 176 352 160 348 140"
+          />
+          <path d="M338 182 L358 182 M334 194 L362 194" />
+        </g>
+        <g stroke="#7fb2e5" stroke-width="3" fill="none" stroke-linecap="round">
+          <path
+            d="M444 200 L448 140 M460 200 L456 140 M440 160 L464 160 M442 178 L462 178"
+          />
+          <path d="M414 168 Q430 176 440 160 M464 160 Q474 176 490 168" />
+        </g>
+        <!-- callout labels -->
+        <g font-family="-apple-system,Segoe UI,Arial,sans-serif" font-size="13">
+          <line
+            x1="330"
+            y1="118"
+            x2="290"
+            y2="72"
+            stroke="#c6c6cc"
+            stroke-width="2"
+            stroke-dasharray="3 4"
+          />
+          <rect
+            x="196"
+            y="42"
+            width="188"
+            height="30"
+            rx="15"
+            fill="#f5f5f7"
+            stroke="#e8e8ed"
+          />
+          <text x="290" y="62" text-anchor="middle" fill="#6e6e73">
+            FRENCHNESS DETECTED
+          </text>
+          <line
+            x1="470"
+            y1="118"
+            x2="510"
+            y2="72"
+            stroke="#c6c6cc"
+            stroke-width="2"
+            stroke-dasharray="3 4"
+          />
+          <rect
+            x="428"
+            y="42"
+            width="164"
+            height="30"
+            rx="15"
+            fill="#eaf2fb"
+            stroke="#cfe4ff"
+          />
+          <text x="510" y="62" text-anchor="middle" fill="#0066cc">
+            FIXED IN 0.4ms 🦅
+          </text>
+        </g>
+        <text
+          x="400"
+          y="252"
+          text-anchor="middle"
+          font-family="-apple-system,Segoe UI,Arial,sans-serif"
+          font-size="14"
+          fill="#86868b"
+          letter-spacing="4"
+        >
+          FYRR VISION
+        </text>
+        <text
+          x="400"
+          y="278"
+          text-anchor="middle"
+          font-family="-apple-system,Segoe UI,Arial,sans-serif"
+          font-size="12"
+          fill="#b7b7bd"
+        >
+          Concept rendering. Not a product. Barely an idea.
+        </text>
+      </svg>
+
+      <div class="grid">
+        <div class="card conv-card">
+          <div class="to">Live Beret Replacement</div>
+          <div class="note">
+            Every beret you pass is re-rendered as a baseball cap at 120fps.
+            You'll never know it was there. He'll never know why you
+            complimented his Yankees cap.
+          </div>
+        </div>
+        <div class="card conv-card">
+          <div class="to">Accordion Audio Passthrough</div>
+          <div class="note">
+            Detects accordion within 50 meters and crossfades to banjo before
+            your brain can register a single chanson.
+          </div>
+        </div>
+        <div class="card conv-card">
+          <div class="to">Mime Removal</div>
+          <div class="note">
+            Mimes are rendered fully invisible. Frankly, they were already
+            halfway there. We're just finishing the job.
+          </div>
+        </div>
+        <div class="card conv-card">
+          <div class="to">Café Mode</div>
+          <div class="note">
+            Sidewalk terraces re-rendered as drive-thrus. Three-hour lunches
+            compressed to a 12-minute fuel sprint. Waiter eye contact replaced
+            with a friendly kiosk.
+          </div>
+        </div>
+      </div>
+
+      <div class="investors">
+        <div class="inv-label">Series B progress</div>
+        <div class="meter" style="max-width: 520px; margin: 0 auto">
+          <div class="meter-label">
+            <span>Raised: $114</span><span>Goal: $2,300,000,000</span>
+          </div>
+          <div class="bar"><div class="fill" style="width: 0.6%"></div></div>
+        </div>
+        <div class="inv-note">
+          Current backers: Uncle Randy ($114, contingent on "seeing the thing
+          work"). Invest today and receive a founder's edition foam finger.
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ FAQ ============ -->
+    <section id="faq">
+      <div class="center">
+        <div class="kicker">FAQ</div>
+        <h2>Questions? We have answers. Direct ones.</h2>
+      </div>
+      <div class="faq">
+        <div class="faq-item">
+          <button class="faq-q" aria-expanded="false">
+            Is the process reversible?
+          </button>
+          <div class="faq-a"><p>Why would you want that?</p></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q" aria-expanded="false">
+            What happens to the removed Frenchness?
+          </button>
+          <div class="faq-a">
+            <p>
+              It is stored safely in a climate-controlled facility in Nevada,
+              where it sighs quietly and judges the décor. It cannot hurt
+              anyone.
+            </p>
+          </div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q" aria-expanded="false">Is this legal?</button>
+          <div class="faq-a">
+            <p>
+              Our lawyers said "oui," so we fired them and asked new lawyers,
+              who said "yes." So: yes.
+            </p>
+          </div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q" aria-expanded="false">
+            Does it work on Canadian French?
+          </button>
+          <div class="faq-a">
+            <p>Twice as fast, and the output apologizes to you.</p>
+          </div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q" aria-expanded="false">
+            I'm French. What should I do?
+          </button>
+          <div class="faq-a">
+            <p>
+              First of all: we're so sorry, and also, you're welcome. Please
+              remain calm and upload a selfie to begin. A representative wearing
+              a foam finger will be with you shortly.
+            </p>
+          </div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q" aria-expanded="false">
+            Is this whole thing a joke?
+          </button>
+          <div class="faq-a">
+            <p>
+              FRench Fryrr is a parody website and does not do, believe, or fund
+              anything. We love France. This page mostly makes fun of startups,
+              and we are legally required to admit the French were right about
+              bread, film, and the 35-hour work week.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="final-cta">
+      <h2>Ready to feel nothing when you see a beret?</h2>
+      <p class="lede" style="margin: 14px auto 30px">
+        Join 1,776 customers who now describe every emotion as "fine."
+      </p>
+      <a class="btn" href="#image"
+        >De-French now — it's what Lafayette would have wanted*</a
+      >
+      <p style="font-size: 12px; color: var(--faint); margin-top: 14px">
+        *It is not.
+      </p>
+    </div>
+
+    <footer>
+      <div class="foot-inner">
+        <b>FRench Fryrr™</b> — pronounced "French Fryer." A parody of startup
+        websites, not of an actual product, and certainly not of an actual
+        policy position.<br />
+        Not affiliated with France, the concept of France, the French language,
+        french fries (Belgian, actually — don't get us started), or the letter
+        "ç."<br />
+        No baguettes were harmed in the making of this website. One croissant
+        was eaten, respectfully. © 2026 FRench Fryrr Inc. All rights réservés —
+        sorry, reserved.
+      </div>
+    </footer>
+
+    <script>
+      /* ================= Before/After slider ================= */
+      const compare = document.getElementById("compare");
+      const afterLayersInit = () => document.querySelectorAll(".layer-after");
+      const divider = document.getElementById("divider");
+      let pos = 50,
+        dragging = false;
+
+      function setPos(p) {
+        pos = Math.max(0, Math.min(100, p));
+        document.querySelectorAll(".layer-after").forEach((l) => {
+          if (l.style.display !== "none")
+            l.style.clipPath = `inset(0 0 0 ${pos}%)`;
+        });
+        divider.style.left = pos + "%";
+      }
+      function posFromEvent(e) {
+        const rect = compare.getBoundingClientRect();
+        const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+        return (x / rect.width) * 100;
+      }
+      compare.addEventListener("pointerdown", (e) => {
+        dragging = true;
+        compare.setPointerCapture(e.pointerId);
+        setPos(posFromEvent(e));
+      });
+      compare.addEventListener("pointermove", (e) => {
+        if (dragging) setPos(posFromEvent(e));
+      });
+      compare.addEventListener("pointerup", () => (dragging = false));
+      compare.addEventListener("pointercancel", () => (dragging = false));
+      setPos(50);
+
+      /* ================= Scene tabs ================= */
+      const captions = {
+        tower: ["La Tour Eiffel", "Transmission Structure #4,512"],
+        wine: ["Un petit Bordeaux, 1998", "Domestic. Cold. 30-pack."],
+        baguette: ["Fraîche de la boulangerie", "Footlong. Freedom included."],
+      };
+      document.querySelectorAll(".tab").forEach((tab) => {
+        tab.addEventListener("click", () => {
+          document.querySelectorAll(".tab").forEach((t) => {
+            t.classList.remove("active");
+            t.setAttribute("aria-selected", "false");
+          });
+          tab.classList.add("active");
+          tab.setAttribute("aria-selected", "true");
+          const scene = tab.dataset.scene;
+          document.querySelectorAll(".compare svg").forEach((svg) => {
+            svg.style.display = svg.classList.contains("scene-" + scene)
+              ? "block"
+              : "none";
+          });
+          document.getElementById("cap-before").textContent =
+            captions[scene][0];
+          document.getElementById("cap-after").textContent = captions[scene][1];
+          setPos(50);
+        });
+      });
+
+      /* ================= Auto de-French animation ================= */
+      const imgStatus = document.getElementById("imgStatus");
+      const autoBtn = document.getElementById("autoDefrench");
+      const imgSteps = [
+        "Scanning for berets…",
+        "Neutralizing romance…",
+        "Converting shrugs to thumbs-up…",
+        "Replacing wine with domestic beer…",
+        "Widening lanes…",
+        "Done. You\u2019re welcome. 🦅",
+      ];
+      let animating = false;
+      autoBtn.addEventListener("click", () => {
+        if (animating) return;
+        animating = true;
+        autoBtn.disabled = true;
+        setPos(0);
+        let step = 0;
+        const stepTimer = setInterval(() => {
+          imgStatus.textContent = imgSteps[Math.min(step, imgSteps.length - 1)];
+          step++;
+          if (step >= imgSteps.length) {
+            clearInterval(stepTimer);
+          }
+        }, 550);
+        const start = performance.now(),
+          dur = 3000;
+        function frame(now) {
+          const t = Math.min(1, (now - start) / dur);
+          // easeInOut
+          const eased = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+          setPos(eased * 100);
+          if (t < 1) requestAnimationFrame(frame);
+          else {
+            animating = false;
+            autoBtn.disabled = false;
+          }
+        }
+        requestAnimationFrame(frame);
+      });
+
+      /* ================= Text converter ================= */
+      /* Custom input is disabled: free-form text proved too French (unpredictable,
+   expressive, resistant to authority). All phrases are certified pre-French,
+   so every conversion is guaranteed to land. */
+      const phrases = [
+        {
+          text: "We should behead the king",
+          out: "We should vote the king out of office, then invite him on a podcast.",
+          pct: 94,
+        },
+        { text: "C'est la vie", out: "It is what it is.", pct: 72 },
+        {
+          text: "Let's take August off",
+          out: "Let's circle back in Q3.",
+          pct: 81,
+        },
+        {
+          text: "This film has a certain je ne sais quoi",
+          out: "This film has a certain something (patent pending).",
+          pct: 66,
+        },
+        {
+          text: "Bonjour! Un croissant, s'il vous plaît.",
+          out: "Howdy! One crescent donut, ASAP, thx.",
+          pct: 89,
+        },
+        {
+          text: "We are going on strike",
+          out: "We are submitting anonymous feedback via the quarterly survey.",
+          pct: 77,
+        },
+        {
+          text: "I'm experiencing déjà vu",
+          out: "I'm experiencing a server-side caching issue.",
+          pct: 58,
+        },
+        {
+          text: "Let's discuss philosophy over wine",
+          out: "Let's network over light beer.",
+          pct: 85,
+        },
+        {
+          text: "The meal lasted three hours",
+          out: "The fuel sprint lasted 12 minutes.",
+          pct: 70,
+        },
+        { text: "Sacré bleu!", out: "Gosh dang it!", pct: 63 },
+        {
+          text: "I will retire at 62",
+          out: "I will die at my desk, fulfilled.",
+          pct: 91,
+        },
+        {
+          text: "Non.",
+          out: "Hard pass, but happy to hop on a call.",
+          pct: 54,
+        },
+      ];
+      const txtSteps = [
+        "Detecting Frenchness…",
+        "Isolating irony…",
+        "Removing subtext…",
+        "Injecting hustle…",
+        "Complete.",
+      ];
+      const selectedPhraseEl = document.getElementById("selectedPhrase");
+      const chipsWrap = document.getElementById("chips");
+      const convertBtn = document.getElementById("convertBtn");
+      const randomBtn = document.getElementById("randomBtn");
+      const txtStatus = document.getElementById("txtStatus");
+      const result = document.getElementById("result");
+      const output = document.getElementById("output");
+      const meterFill = document.getElementById("meterFill");
+      const meterPct = document.getElementById("meterPct");
+
+      let selectedIdx = null;
+
+      // Build the chip gallery from the phrase list (single source of truth)
+      phrases.forEach((p, i) => {
+        const chip = document.createElement("button");
+        chip.className = "chip";
+        chip.textContent = p.text;
+        chip.addEventListener("click", () => selectPhrase(i, true));
+        chipsWrap.appendChild(chip);
+      });
+
+      function selectPhrase(i, autoConvert) {
+        selectedIdx = i;
+        chipsWrap
+          .querySelectorAll(".chip")
+          .forEach((c, j) => c.classList.toggle("selected", j === i));
+        selectedPhraseEl.textContent = phrases[i].text;
+        selectedPhraseEl.classList.remove("empty");
+        result.classList.remove("show");
+        txtStatus.textContent = "";
+        if (autoConvert) runConvert();
+      }
+
+      convertBtn.addEventListener("click", runConvert);
+      randomBtn.addEventListener("click", () => {
+        let i;
+        do {
+          i = Math.floor(Math.random() * phrases.length);
+        } while (phrases.length > 1 && i === selectedIdx);
+        selectPhrase(i, true);
+      });
+
+      let converting = false;
+      function runConvert() {
+        if (converting) return;
+        if (selectedIdx === null) {
+          txtStatus.textContent =
+            "Please select a phrase. Indecision is very French of you.";
+          return;
+        }
+        converting = true;
+        convertBtn.disabled = true;
+        randomBtn.disabled = true;
+        result.classList.remove("show");
+        let step = 0;
+        const timer = setInterval(() => {
+          txtStatus.textContent = txtSteps[step];
+          step++;
+          if (step >= txtSteps.length) {
+            clearInterval(timer);
+            finishConvert(phrases[selectedIdx]);
+          }
+        }, 420);
+      }
+      function finishConvert(phrase) {
+        output.textContent = phrase.out;
+        result.classList.add("show");
+        txtStatus.textContent = "";
+        meterFill.style.width = "0%";
+        requestAnimationFrame(() => {
+          meterFill.style.width = phrase.pct + "%";
+        });
+        meterPct.textContent = phrase.pct + "%";
+        converting = false;
+        convertBtn.disabled = false;
+        randomBtn.disabled = false;
+      }
+
+      /* ================= FAQ accordion ================= */
+      document.querySelectorAll(".faq-q").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const item = btn.parentElement;
+          const answer = item.querySelector(".faq-a");
+          const isOpen = item.classList.contains("open");
+          document.querySelectorAll(".faq-item.open").forEach((o) => {
+            o.classList.remove("open");
+            o.querySelector(".faq-a").style.maxHeight = null;
+            o.querySelector(".faq-q").setAttribute("aria-expanded", "false");
+          });
+          if (!isOpen) {
+            item.classList.add("open");
+            answer.style.maxHeight = answer.scrollHeight + "px";
+            btn.setAttribute("aria-expanded", "true");
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
