@@ -194,7 +194,7 @@
 
   <aside>
     <section class="block">
-      <div class="label">Source image</div>
+      <div class="label">Front sprite</div>
       <div class="dropzone" id="dropzone">
         <div>Drop an image, or click to choose</div>
         <div class="hint">PNG works best for hard edges &middot; auto-scaled to fit 256&times;256</div>
@@ -204,11 +204,26 @@
     </section>
 
     <section class="block">
-      <div class="label">Block height</div>
-      <div class="slider-row">
-        <div class="top"><span class="label">relative to pixel size</span><span class="val" id="depthVal">1.0&times;</span></div>
-        <input type="range" id="depthSlider" min="0.1" max="3" step="0.05" value="1">
+      <div class="label">Side sprite <span style="color:var(--muted); font-weight:400;">(optional)</span></div>
+      <div class="dropzone" id="dropzoneSide">
+        <div>Drop a second image for a cross-section</div>
+        <div class="hint">Builds a second plane from this image, rotated 90&deg; to cross the front sprite</div>
+        <div class="filename" id="filenameSide"></div>
       </div>
+      <input type="file" id="fileInputSide" accept="image/*">
+      <button id="btnClearSide" style="display:none;">Remove side sprite</button>
+    </section>
+
+    <section class="block">
+      <div class="label">Pixel thickness</div>
+      <div class="slider-row">
+        <div class="top"><span class="label">multiple of one pixel &middot; shared by both sprites</span></div>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <input type="range" id="depthSlider" min="0.1" max="5" step="0.05" value="1" style="flex:1;">
+          <input type="number" id="depthNumber" min="0.01" step="0.05" value="1" style="width:64px; background:var(--panel-raised); color:var(--text); border:1px solid var(--border); border-radius:6px; padding:6px 6px; font-family:var(--mono); font-size:13px;">
+        </div>
+      </div>
+      <div class="hint" style="color:var(--muted); font-size:12px;">1 = one pixel deep, 0.5 = half a pixel, 2 = two pixels &mdash; type any value, the slider is just a shortcut.</div>
     </section>
 
     <section class="block">
@@ -217,9 +232,9 @@
     </section>
 
     <section class="block">
-      <div class="label">Cardboard cutout</div>
-      <label class="check"><input type="checkbox" id="crossPlane"> Duplicate rotated 90&deg;, forming a &plus; cross</label>
-      <div class="hint" style="color:var(--muted); font-size:12px;">Adds volume from any side, like foliage billboards in voxel games.</div>
+      <div class="label">Material</div>
+      <label class="check"><input type="checkbox" id="unlitToggle" checked> Unlit (no shading)</label>
+      <div class="hint" style="color:var(--muted); font-size:12px;">Bakes the glTF KHR_materials_unlit flag into the file, so Godot (and other engines that support it) import the mesh already set to Unshaded &mdash; no manual toggle needed. Doesn't affect the .stl export, which never carries material data.</div>
     </section>
 
     <section class="block">
@@ -323,10 +338,14 @@ resizeRenderer();
 const dropzone = document.getElementById('dropzone');
 const fileInput = document.getElementById('fileInput');
 const filenameEl = document.getElementById('filename');
+const dropzoneSide = document.getElementById('dropzoneSide');
+const fileInputSide = document.getElementById('fileInputSide');
+const filenameSideEl = document.getElementById('filenameSide');
+const btnClearSide = document.getElementById('btnClearSide');
 const depthSlider = document.getElementById('depthSlider');
-const depthVal = document.getElementById('depthVal');
+const depthNumber = document.getElementById('depthNumber');
 const skipAlpha = document.getElementById('skipAlpha');
-const crossPlane = document.getElementById('crossPlane');
+const unlitToggle = document.getElementById('unlitToggle');
 const simplifyToggle = document.getElementById('simplifyToggle');
 const simplifyRow = document.getElementById('simplifyRow');
 const simplifySlider = document.getElementById('simplifySlider');
@@ -337,25 +356,59 @@ const btnStl = document.getElementById('btnStl');
 const btnGlb = document.getElementById('btnGlb');
 const btnGltf = document.getElementById('btnGltf');
 
-let lastImageData = null; // ImageData of the (possibly downscaled) source
+let lastImageData = null;     // ImageData of the (possibly downscaled) front sprite
+let lastSideImageData = null; // ImageData of the optional side sprite; cross-section only happens when this is set
 let baseName = 'model';
 
-dropzone.addEventListener('click', () => fileInput.click());
-dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag'); });
-dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag'));
-dropzone.addEventListener('drop', e => {
-  e.preventDefault();
-  dropzone.classList.remove('drag');
-  if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
-});
-fileInput.addEventListener('change', e => { if (e.target.files[0]) handleFile(e.target.files[0]); });
+function wireDropzone(zoneEl, inputEl, onFile) {
+  zoneEl.addEventListener('click', () => inputEl.click());
+  zoneEl.addEventListener('dragover', e => { e.preventDefault(); zoneEl.classList.add('drag'); });
+  zoneEl.addEventListener('dragleave', () => zoneEl.classList.remove('drag'));
+  zoneEl.addEventListener('drop', e => {
+    e.preventDefault();
+    zoneEl.classList.remove('drag');
+    if (e.dataTransfer.files[0]) onFile(e.dataTransfer.files[0]);
+  });
+  inputEl.addEventListener('change', e => { if (e.target.files[0]) onFile(e.target.files[0]); });
+}
 
-depthSlider.addEventListener('input', () => {
-  depthVal.textContent = parseFloat(depthSlider.value).toFixed(2) + '\u00d7';
+wireDropzone(dropzone, fileInput, file => handleFile(file, imgData => {
+  baseName = file.name.replace(/\.[^.]+$/, '') || 'model';
+  filenameEl.textContent = file.name;
+  lastImageData = imgData;
+  build();
+}));
+
+wireDropzone(dropzoneSide, fileInputSide, file => handleFile(file, imgData => {
+  filenameSideEl.textContent = file.name;
+  btnClearSide.style.display = 'block';
+  lastSideImageData = imgData;
+  build();
+}));
+
+btnClearSide.addEventListener('click', () => {
+  lastSideImageData = null;
+  filenameSideEl.textContent = '';
+  btnClearSide.style.display = 'none';
   if (lastImageData) build();
 });
+
+depthSlider.addEventListener('input', () => {
+  depthNumber.value = depthSlider.value;
+  if (lastImageData) build();
+});
+depthNumber.addEventListener('input', () => {
+  const v = parseFloat(depthNumber.value);
+  if (!isFinite(v) || v <= 0) return;
+  // Keep the slider roughly in sync when the typed value is within its
+  // range; values outside the slider's range are still fully honored, the
+  // slider just visually clamps to its own end.
+  depthSlider.value = Math.min(Math.max(v, parseFloat(depthSlider.min)), parseFloat(depthSlider.max));
+  if (lastImageData) build();
+});
+
 skipAlpha.addEventListener('change', () => { if (lastImageData) build(); });
-crossPlane.addEventListener('change', () => { if (lastImageData) build(); });
+unlitToggle.addEventListener('change', () => { if (lastImageData) build(); });
 
 simplifyToggle.addEventListener('change', () => {
   simplifyRow.style.display = simplifyToggle.checked ? 'flex' : 'none';
@@ -372,10 +425,11 @@ simplifySlider.addEventListener('input', () => {
   simplifyDebounce = setTimeout(build, 150);
 });
 
-function handleFile(file) {
+// Loads a file into a same-size-or-smaller ImageData, capped to MAX_DIM,
+// with nearest-neighbor scaling so pixel-art edges stay crisp. Shared by
+// both the front and side dropzones.
+function handleFile(file, onLoaded) {
   if (!file.type.startsWith('image/')) return;
-  baseName = file.name.replace(/\.[^.]+$/, '') || 'model';
-  filenameEl.textContent = file.name;
   const img = new Image();
   img.onload = () => {
     let w = img.naturalWidth, h = img.naturalHeight;
@@ -387,8 +441,7 @@ function handleFile(file) {
     const ctx = canvas.getContext('2d');
     ctx.imageSmoothingEnabled = false; // keep hard pixel edges
     ctx.drawImage(img, 0, 0, w, h);
-    lastImageData = ctx.getImageData(0, 0, w, h);
-    build();
+    onLoaded(ctx.getImageData(0, 0, w, h));
     URL.revokeObjectURL(img.src);
   };
   img.src = URL.createObjectURL(file);
@@ -491,13 +544,15 @@ function smoothColorGrid(colorGrid, W, H, strength) {
   return out;
 }
 
-function build() {
-  const { data, width: W, height: H } = lastImageData;
+// Turns one image into a colorGrid + greedy-merged rects, applying the
+// shared alpha and simplify settings. Used for both the front and side
+// sprite, so the two stay perfectly consistent.
+function processSprite(imageData) {
+  const { data, width: W, height: H } = imageData;
   const alphaCutoff = 16;
   const useAlpha = skipAlpha.checked;
 
   let colorGrid = new Int32Array(W * H);
-  let solidCount = 0;
   for (let y = 0; y < H; y++) {
     for (let x = 0; x < W; x++) {
       const i = (y * W + x) * 4;
@@ -508,7 +563,6 @@ function build() {
       }
       const r = data[i], g = data[i + 1], b = data[i + 2];
       colorGrid[y * W + x] = (r << 16) | (g << 8) | b;
-      solidCount++;
     }
   }
 
@@ -520,23 +574,62 @@ function build() {
   if (simplifyToggle.checked) {
     const strength = parseFloat(simplifySlider.value);
     colorGrid = smoothColorGrid(colorGrid, W, H, strength);
-    solidCount = 0;
-    for (let i = 0; i < colorGrid.length; i++) if (colorGrid[i] !== -1) solidCount++;
   }
 
+  let solidCount = 0;
+  for (let i = 0; i < colorGrid.length; i++) if (colorGrid[i] !== -1) solidCount++;
+
   const rects = greedyRects(colorGrid, W, H);
+  return { W, H, rects, solidCount };
+}
 
+// Builds one box per rect, symmetric around Z=0 (spans -thickness/2 to
+// +thickness/2) rather than starting at Z=0 and extending away. That
+// symmetry is what lets the side sprite share the exact same centerline
+// after being rotated 90° — both sprites straddle the same middle line
+// regardless of thickness, so the cross always meets cleanly.
+function buildSpriteGeometries(rects, W, H, thickness, paletteIndex, cols, rows) {
   const unit = 1;
-  const depth = parseFloat(depthSlider.value) * unit;
-
-  // Assign each unique color a cell in a tiny palette texture, so every box
-  // just needs a constant UV pointing at its color's cell. One material,
-  // one texture, one mesh — no per-object material list, and it stays
-  // correct if the material is later switched to unlit, since it's an
-  // ordinary base-color texture rather than a renderer-dependent feature.
-  const paletteIndex = new Map();
+  const geometries = [];
   for (const rect of rects) {
+    const geo = new THREE.BoxGeometry(rect.w * unit, rect.h * unit, thickness);
+    geo.clearGroups();
+    const cx = (rect.x + rect.w / 2) * unit - (W * unit) / 2;
+    const cy = (H * unit) / 2 - (rect.y + rect.h / 2) * unit; // flip Y: image rows go down, 3D up
+    geo.translate(cx, cy, 0); // BoxGeometry is already centered on Z, so this keeps it centered on 0
+
+    const i = paletteIndex.get(rect.color);
+    const col = i % cols, row = Math.floor(i / cols);
+    const u = (col + 0.5) / cols;
+    const v = (row + 0.5) / rows;
+    const uvCount = geo.attributes.uv.count;
+    const uv = new Float32Array(uvCount * 2);
+    for (let k = 0; k < uvCount; k++) { uv[k * 2] = u; uv[k * 2 + 1] = v; }
+    geo.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+
+    geometries.push(geo);
+  }
+  return geometries;
+}
+
+function build() {
+  const thickness = parseFloat(depthNumber.value) > 0 ? parseFloat(depthNumber.value) : 1;
+
+  const front = processSprite(lastImageData);
+  // Cross-section only happens when a side sprite is actually loaded —
+  // there's no separate toggle for it anymore.
+  const side = lastSideImageData ? processSprite(lastSideImageData) : null;
+
+  // One shared palette across both sprites, so the whole model stays a
+  // single mesh with a single material (see palette-texture notes below).
+  const paletteIndex = new Map();
+  for (const rect of front.rects) {
     if (!paletteIndex.has(rect.color)) paletteIndex.set(rect.color, paletteIndex.size);
+  }
+  if (side) {
+    for (const rect of side.rects) {
+      if (!paletteIndex.has(rect.color)) paletteIndex.set(rect.color, paletteIndex.size);
+    }
   }
   const numColors = Math.max(1, paletteIndex.size);
   const cols = Math.max(1, Math.ceil(Math.sqrt(numColors)));
@@ -578,39 +671,17 @@ function build() {
     currentModel.material.dispose();
   }
 
-  const geometries = [];
-  for (const rect of rects) {
-    const geo = new THREE.BoxGeometry(rect.w * unit, rect.h * unit, depth);
-    geo.clearGroups();
-    const cx = (rect.x + rect.w / 2) * unit - (W * unit) / 2;
-    const cy = (H * unit) / 2 - (rect.y + rect.h / 2) * unit; // flip Y: image rows go down, 3D up
-    geo.translate(cx, cy, depth / 2);
+  const geometries = buildSpriteGeometries(front.rects, front.W, front.H, thickness, paletteIndex, cols, rows);
 
-    const i = paletteIndex.get(rect.color);
-    const col = i % cols, row = Math.floor(i / cols);
-    const u = (col + 0.5) / cols;
-    const v = (row + 0.5) / rows;
-    const uvCount = geo.attributes.uv.count;
-    const uv = new Float32Array(uvCount * 2);
-    for (let k = 0; k < uvCount; k++) { uv[k * 2] = u; uv[k * 2 + 1] = v; }
-    geo.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
-
-    geometries.push(geo);
-  }
-
-  // Cardboard cutout: duplicate every box, rotated 90° around the vertical
-  // (Y) axis about the model's own center line, so the copy sits
-  // perpendicular to the original. Together they form a "+" cross when
-  // viewed from above — the classic billboard-cross trick for faking
-  // volume from any side with just one flat piece of pixel art.
-  if (crossPlane.checked && geometries.length) {
-    const pivotZ = depth / 2;
-    const rot = new THREE.Matrix4()
-      .makeTranslation(0, 0, pivotZ)
-      .multiply(new THREE.Matrix4().makeRotationY(Math.PI / 2))
-      .multiply(new THREE.Matrix4().makeTranslation(0, 0, -pivotZ));
-    const crossGeometries = geometries.map(g => g.clone().applyMatrix4(rot));
-    geometries.push(...crossGeometries);
+  if (side) {
+    const sideGeometries = buildSpriteGeometries(side.rects, side.W, side.H, thickness, paletteIndex, cols, rows);
+    // Rotate 90° around the vertical (Y) axis through the origin. Both
+    // sprites' boxes are already centered on Z=0 (front) / will become
+    // centered on X=0 after this rotation (side), so no pivot offset is
+    // needed — they meet at the shared centerline regardless of thickness.
+    const rot = new THREE.Matrix4().makeRotationY(Math.PI / 2);
+    for (const geo of sideGeometries) geo.applyMatrix4(rot);
+    geometries.push(...sideGeometries);
   }
 
   let mesh = null;
@@ -620,7 +691,15 @@ function build() {
     merged.computeVertexNormals();
     geometries.forEach(g => g.dispose());
 
-    const material = new THREE.MeshStandardMaterial({ map: paletteTexture, roughness: 0.65, metalness: 0.05 });
+    // MeshBasicMaterial is three.js's unlit material — the GLTFExporter
+    // automatically writes the KHR_materials_unlit extension for it, which
+    // is what makes engines that support the extension (Godot included)
+    // import the mesh already set to Unshaded, with no manual step. A
+    // MeshStandardMaterial would just be a normal lit PBR material with no
+    // such flag to bake, however its properties are set.
+    const material = unlitToggle.checked
+      ? new THREE.MeshBasicMaterial({ map: paletteTexture })
+      : new THREE.MeshStandardMaterial({ map: paletteTexture, roughness: 0.65, metalness: 0.05 });
     // Unique per export: some engines (Godot included) match materials by
     // name to reuse a previously-edited/detached copy on reimport, which
     // would silently carry old color edits into a brand new export.
@@ -633,8 +712,13 @@ function build() {
   }
   currentModel = mesh;
 
-  frameCamera(W, H, depth);
-  updateStats(W, H, solidCount, rects.length, triCount);
+  const W = front.W, H = front.H;
+  const solidCount = front.solidCount + (side ? side.solidCount : 0);
+  const blockCount = front.rects.length + (side ? side.rects.length : 0);
+  const maxDim = Math.max(W, H, side ? side.W : 0, side ? side.H : 0);
+
+  frameCamera(maxDim, thickness);
+  updateStats(W, H, side, solidCount, blockCount, triCount);
 
   btnStl.disabled = !currentModel;
   btnGlb.disabled = !currentModel;
@@ -643,18 +727,19 @@ function build() {
   viewerHint.style.display = mesh ? 'block' : 'none';
 }
 
-function frameCamera(W, H, depth) {
-  const size = Math.max(W, H, depth * 4);
+function frameCamera(maxDim, thickness) {
+  const size = Math.max(maxDim, thickness * 4);
   camera.position.set(size * 0.9, size * 0.7, size * 1.1);
-  controls.target.set(0, 0, depth / 2);
+  controls.target.set(0, 0, 0); // model is symmetric around the origin now, not offset by depth/2
   camera.near = size / 100;
   camera.far = size * 20;
   camera.updateProjectionMatrix();
   controls.update();
 }
 
-function updateStats(W, H, solidCount, blockCount, triCount) {
-  document.getElementById('statGrid').textContent = `${W} \u00d7 ${H}`;
+function updateStats(W, H, side, solidCount, blockCount, triCount) {
+  const gridText = side ? `${W}\u00d7${H} + ${side.W}\u00d7${side.H}` : `${W} \u00d7 ${H}`;
+  document.getElementById('statGrid').textContent = gridText;
   document.getElementById('statPixels').textContent = solidCount.toLocaleString();
   document.getElementById('statBlocks').textContent = blockCount.toLocaleString();
   const saved = solidCount > 0 ? Math.round((1 - blockCount / solidCount) * 100) : 0;
